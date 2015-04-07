@@ -1,0 +1,11 @@
+Practice problem 2.46
+
+A. What is the binary representation of 0.1 - x?
+
+B. What is the approximate decimal value of 0.1 - x?
+
+C. From 0 to 100 hours, what was the difference between actual time and
+computed time?
+
+D. Predictions are based on velocity and time of last radar detection.
+Scud travels 2000 m/s, how far off was the prediction?

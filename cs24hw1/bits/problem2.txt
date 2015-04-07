@@ -1,0 +1,28 @@
+Problem 2
+
+Consider the expression n = n & (n - 1).
+
+What does this expression do to n?
+
+If n is a power of 2, n & (n - 1) will be 0. For example, 1000 & 111 = 0.
+If n is not a power of 2, n & (n - 1) will flip the least significant
+(right-most) one-bit in n.
+For example:
+1111 & 1110 = 1110
+1010 & 1001 = 1000
+11000 & 10111 = 10000
+
+How does it work?
+
+Subtracting 1 from n flips the right-most one-bit and any bits to the right
+of it. So when (n - 1) is AND-ed with n, bits in the affected positions of
+n & (n - 1) will all be 0, effectively flipping the right-most bit and leaving
+the other bits unaffected.
+
+How might it provide a faster way to count one-bits in a value?
+
+Every time we evaluate n = n & (n - 1), we are guaranteed to either remove a
+one-bit from n or reach 0. Therefore when we loop through n's bits we only
+need as many iterations of the loop as number of one-bits, instead of the
+length of n. For an n with many more zero-bits than one-bits, this makes
+counting one-bits much faster.
