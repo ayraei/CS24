@@ -1,0 +1,22 @@
+Why are these results different?
+
+For floating-point sums over a large range of values, the running sum cannot
+always be stored at full precision. Thus, some least-significant bits can be
+lost, for example if a very large running sum and a very small value are
+added together. So, changing the order of values added can affect whether
+calculations will result in a loss of precision.
+
+Of the three approaches that fsum uses, which is the most accurate, and why?
+
+The approach summing over the inputs in order of increasing magnitude is
+the most accurate. This is because adding a single value of small magnitude
+(which I will call a "small value") to a large running sum may result in a loss
+of precision, but by summing together the small values first, we can minimize
+the loss of precision since the running sum changes in magnitude the most
+slowly with this approach.
+
+What kinds of inputs would also cause the "most accurate" approach to exhibit
+large errors?
+
+Having many values of varying magnitudes, each with full precision, can also
+cause the above approach to exhibit large errors.

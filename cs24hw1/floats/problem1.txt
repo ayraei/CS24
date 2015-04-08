@@ -2,10 +2,26 @@ Practice problem 2.46
 
 A. What is the binary representation of 0.1 - x?
 
+We wish to calculate 0.1 (dec) - 0.00011001100110011001100 (bin)
+
+0.0001100110011001100110011 [0011...] (bin) - 0.00011001100110011001100 (bin)
+= 0.0000000000000000000000011[0011...] (bin)
+
 B. What is the approximate decimal value of 0.1 - x?
+
+0.00011001100110011001100 in binary is
+0.09999990463256836 in decimal.
+0.1 - 0.09999990463256836 = 9.536743164 × 10^-8
 
 C. From 0 to 100 hours, what was the difference between actual time and
 computed time?
 
+The counter at 100 hours would have been, in decimal,
+100*60*60*10 = 3,600,000 tenth-seconds.
+3600000(0.1 - x) = 3600000 * [answer from (b)]
+= 0.343322753904 seconds of difference.
+
 D. Predictions are based on velocity and time of last radar detection.
 Scud travels 2000 m/s, how far off was the prediction?
+
+(0.343322753904 sec) * (2000 m/sec) = 686.645507808 m difference
