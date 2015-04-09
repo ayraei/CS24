@@ -45,17 +45,14 @@ void free_alu(ALU *alu) {
 void alu_eval(ALU *alu) {
     unsigned long A, B, aluop;
     unsigned long result;
-    unsigned long MSBMask;
 
     A = pin_read(alu->in1);
     B = pin_read(alu->in2);
     aluop = pin_read(alu->op);
 
     result = 0;
-
-    /*======================================*/
-    /* TODO:  Implement the ALU logic here. */
-    /*======================================*/
+    
+    /* Check if a recognized ALU opcode has been read, then perform it. */
     switch (aluop) {
     
     case ALUOP_ADD:
@@ -86,10 +83,8 @@ void alu_eval(ALU *alu) {
         result = A & B;
         break;
     
-    /* FIX THIS. CHECK testalu OUTPUT. */
     case ALUOP_SRA:
-        MSBMask = 0x80000000;
-        result = (A & MSBMask) | (A >> 1);
+        result = ((signed long) A) >> 1;
         break;
     
     case ALUOP_SRL:

@@ -63,5 +63,11 @@ void branch_test(BranchUnit *bru) {
     /*        Use pin_set(bru->branch, ...) to set the value on the bus.    */
     /*======================================================================*/
 
+    if (aluop == ALUOP_BNZ && A != 0) {
+        pin_set(bru->branch, BRANCH);
+    }
+    else {
+        pin_set(bru->branch, NOBRANCH);
+    }
 }
 
