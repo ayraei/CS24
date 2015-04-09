@@ -21,9 +21,24 @@ float fsum(FloatArray *floats) {
 }
 
 
-/* TODO:  IMPLEMENT my_fsum() HERE, AND DESCRIBE YOUR APPROACH. */
+/*
+ * This function takes an array of single-precision floating point values,
+ * and computes their sum more accurately than plain addition by introducing
+ * a compensation term to try to hold onto as much precision as possible.
+ *
+ * From HW1 writeup:
+ * Algebraically, what should 'c' always be equal to?
+ *
+ * In what situations would it deviate from this expected value?
+ *
+ * How can we take advantage of this to improve accuracy?
+ *
+ */
 float my_fsum(FloatArray *floats) {
-    /* TODO */
+    float sum = 0, c = 0;   /* c is the compensation term */
+    int i;
+    
+    
     return 0;
 }
 

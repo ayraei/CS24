@@ -10,3 +10,4 @@
 0b4e  #   R6<-R5-R1  -- i==arg 
 2985  #   BNZ R6 5   -- if (i!=arg) branch LOOP_TOP
 3c00  #   done       -- finished, exit leaving result in R2
+

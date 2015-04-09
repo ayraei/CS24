@@ -1,0 +1,4 @@
+f   # dividend
+5   # divisor
+80000000    # MSB mask
+

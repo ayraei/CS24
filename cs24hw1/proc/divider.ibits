@@ -1,0 +1,91 @@
+0bb6  # R6<-R6-R6     -- quotient = 0
+0387  # R7<-R6+R0     -- remainder = dividend + 0
+0bcf  # WHILE_1 (2) : R7 <- R7 - R1     -- remainder = remainder - divisor
+23d4  # R4<-R7&R2     -- R4 = MSB of remainder
+2907  # BNZ R4 7      -- if(remainder < 0) branch DONE_1
+1786  # INCR R6       -- quotient = quotient + 1
+2882  # BNZ R2 2      -- Go to WHILE_1
+23d4  # DONE_1, WHILE_2 (7) : R4<-R7&R2     -- R4 = MSB of remainder
+0f14  # R4<-R4^R2     -- Check if R4 is 0
+290b  # BNZ R4 11     -- if(remainder >= 0) branch DONE_2
+03cf  # R7<-R7+R1     -- remainder = remainder + divisor
+2887  # BNZ R2 7      -- Go to WHILE_2
+3c00  # DONE          -- finished, leaving quotient in R6 and remainder in R7
+
+
+
+
+
+0010 1 110 110 110  # R6<-R6-R6     -- quotient = 0
+0000 1 110 000 111  # R7<-R6+R0     -- remainder = dividend + 0
+0010 1 111 001 111  # WHILE_1 (2) : R7 <- R7 - R1     -- remainder = remainder - divisor
+1000 1 111 010 100  # R4<-R7&R2     -- R4 = MSB of remainder
+1010 0 100 000 111  # BNZ R4 7      -- if(remainder < 0) branch DONE_1
+0101 1 110 000 110  # INCR R6       -- quotient = quotient + 1
+1010 0 010 000 010  # BNZ R2 2      -- Go to WHILE_1
+1000 1 111 010 100  # DONE_1, WHILE_2 (7) : R4<-R7&R2     -- R4 = MSB of remainder
+0011 1 100 010 100  # R4<-R4^R2     -- Check if R4 is 0
+1010 0 100 001 011  # BNZ R4 11     -- if(remainder >= 0) branch DONE_2
+0000 1 111 001 111  # R7<-R7+R1     -- remainder = remainder + divisor
+1010 0 010 000 111  # BNZ R2 7      -- Go to WHILE_2
+1111 0 000 000 000  # DONE          -- finished, leaving quotient in R6 and remainder in R7
+
+
+R6 <- R6 - R6
+R7 <- R0
+[WHILE_1 = 2] R7 <- R7 - R1
+R4 <- R7 & R2
+BNZ R4 [DONE_1]
+R6 <- INC R6
+BNZ R2 [WHILE_1]
+[DONE_1 = 7] [WHILE_2 = 7] R4 <- R7 ^ R2
+BNZ R4 [DONE_2]
+R7 <- R7 + R1
+BNZ R2 [WHILE_2]
+[DONE_2 = 11] DONE
+
+
+R6 <- R6 - R6
+R7 <- R0
+[WHILE_1]
+R7 <- R7 - R1
+(BRANCH remainder < 0 to DONE_1)
+R4 <- R7 & R2
+BNZ R3 [DONE_1]
+R6 <- INC R6
+BRZ 0 [WHILE_1]
+[DONE_1] [WHILE_2]
+(BRANCH remainder >= 0 to DONE_2)
+R7 <- R7 + R1
+(GOTO WHILE_2)
+[DONE_2]
+
+
+    quotient = quotient - quotient
+    remainder = dividend
+WHILE_1:
+    remainder = remainder - divisor
+    (BRANCH remainder < 0 to DONE_1)
+    quotient = quotient + 1
+    GOTO WHILE_1
+DONE_1:
+
+WHILE_2:
+    (BRANCH for while condition)
+    remainder = remainder + divisor
+
+
+
+quotient = 0
+remainder = dividend
+while true do
+    remainder = remainder - divisor
+    if remainder >= 0 then
+        quotient = quotient + 1
+    else
+        break
+
+while remainder < 0
+    remainder = remainder + divisor
+
+return quotient, remainder
