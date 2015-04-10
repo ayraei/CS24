@@ -1,4 +1,4 @@
-a
-5
-80000000
-0
+13  # dividend = 19
+4   # dividend = 4
+80000000    # MSB bitmask
+

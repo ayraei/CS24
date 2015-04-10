@@ -1,0 +1,9 @@
+10 divided by 0 results in an infinite loop and meaningless results. This is
+due to transferring a positive value (dividend = 10) into the remainder
+register initially, and performing
+
+remainder = remainder - divisor
+10 = 10 - 0 = 10
+
+until remainder goes below 0. However, this will never happen, so the program
+as described (and implemented) in the HW writeup will infinite loop.

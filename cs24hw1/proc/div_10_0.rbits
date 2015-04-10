@@ -1,0 +1,3 @@
+a   # dividend = 10
+0   # divisor = 0
+80000000    # MSB bitmask

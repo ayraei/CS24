@@ -55,47 +55,58 @@ void alu_eval(ALU *alu) {
     /* Check if a recognized ALU opcode has been read, then perform it. */
     switch (aluop) {
     
+    /* Perform addition on the arguments. */
     case ALUOP_ADD:
         result = A + B;
         break;
     
+    /* Invert each bit of 'A'. */
     case ALUOP_INV:
         result = ~A;
         break;
     
+    /* Perform subtraction on the arguments. */
     case ALUOP_SUB:
         result = A - B;
         break;
     
+    /* Bitwise exclusive OR of 'A' and 'B'. */
     case ALUOP_XOR:
         result = A ^ B;
         break;
     
+    /* Bitwise OR of 'A' and 'B'. */
     case ALUOP_OR:
         result = A | B;
         break;
     
+    /* Increment by one. */
     case ALUOP_INCR:
         result = A + 1;
         break;
-    
+
+    /* Bitwise AND of 'A' and 'B'. */
     case ALUOP_AND:
         result = A & B;
         break;
     
+    /* Arithmetic right-shift by one. */
     case ALUOP_SRA:
         result = ((signed long) A) >> 1;
         break;
     
+    /* Logical right-shift by one. */
     case ALUOP_SRL:
         result = A >> 1;
         break;
     
+    /* Arithmetic [SLA] and logical [SLL] left-shift by one. */
     case ALUOP_SLA:
     case ALUOP_SLL:
         result = A << 1;
         break;
     
+    /* Opcode not recognized. */
     default:
         result = 0;
         break;

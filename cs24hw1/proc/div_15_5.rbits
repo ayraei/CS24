@@ -1,4 +1,4 @@
-f   # dividend
-5   # divisor
-80000000    # MSB mask
+f   # dividend = 15
+5   # divisor = 5
+80000000    # MSB bitmask
 
