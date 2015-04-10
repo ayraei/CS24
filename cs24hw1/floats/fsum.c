@@ -28,18 +28,31 @@ float fsum(FloatArray *floats) {
  *
  * From HW1 writeup:
  * Algebraically, what should 'c' always be equal to?
+ * - It should be zero.
  *
  * In what situations would it deviate from this expected value?
+ * - When lower-precision bits are being discarded, 'c' will not be zero.
  *
  * How can we take advantage of this to improve accuracy?
+ * - We can try to add the difference resulting from discarding bits back into
+ * the sum in the next iteration of the loop in order to maintain precision.
  *
  */
 float my_fsum(FloatArray *floats) {
-    float sum = 0, c = 0;   /* c is the compensation term */
+    float sum = 0.0, c = 0.0;   /* c is the compensation term */
+    float nextsum, val;
     int i;
     
-    
-    return 0;
+    for (i = 0; i < floats->count; i++) {
+        /* Try to add compensation term back in. */
+        val = floats->values[i] - c;
+        nextsum = sum + val;
+        /* 'c' = the negative difference of lost precision */
+        c = (nextsum - sum) - val;
+        sum = nextsum;
+    }
+
+    return sum;
 }
 
 
@@ -73,9 +86,7 @@ int main() {
     printf("Sum computed in order of increasing magnitude:  %e\n", sum2);
     printf("Sum computed in order of decreasing magnitude:  %e\n", sum3);
 
-    /* TODO:  UNCOMMENT
     printf("My sum:  %e\n", my_sum);
-    */
 
     return 0;
 }

@@ -2,6 +2,7 @@ Loaded 100000 floats from stdin.
 Sum computed in order of input:  1.941092e+06
 Sum computed in order of increasing magnitude:  1.941126e+06
 Sum computed in order of decreasing magnitude:  1.941090e+06
+My sum: 1.941125e+06
 
 accurate sum:  1.941125e+06
 
@@ -9,6 +10,7 @@ Loaded 100000 floats from stdin.
 Sum computed in order of input:  1.973120e+06
 Sum computed in order of increasing magnitude:  1.973146e+06
 Sum computed in order of decreasing magnitude:  1.973122e+06
+MY: 1.973143e+06
 
 accurate sum:  1.973143e+06
 
