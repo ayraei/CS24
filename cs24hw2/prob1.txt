@@ -1,0 +1,7 @@
+What does the following assembly code do?
+
+movl    8(%ebp), %eax
+imull   $3, %eax
+addl    $12, %eax
+imull   8(%ebp), %eax
+subl    $17, %eax
