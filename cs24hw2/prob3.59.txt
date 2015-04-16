@@ -1,0 +1,39 @@
+int switch_prob(int x, int n)
+{
+    int result = x;
+    
+    switch(n) {
+        case 50:
+        case 52:
+            /* shl $0x2,%eax */
+            x = x << 2;
+            break;
+        case 53:
+            /* sar $0x2,%eax */
+            x = x >> 2;     /* x is an int so signed */
+            break;
+        case 54:
+            /*
+             * lea (%eax,%eax,2),%eax
+             * imul %eax,%eax
+             * add $0xa,%eax
+             */
+            x *= 3;
+            x *= x;
+            x += 10;
+            break;
+        case 55:
+            /*
+             * imul %eax,%eax
+             * add $0xa,%eax
+             */
+            x *= x;
+            x += 10;
+            break;
+        default:
+            x += 10;
+            break;
+    }
+    
+    return result;
+}

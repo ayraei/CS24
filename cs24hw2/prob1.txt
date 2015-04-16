@@ -5,3 +5,7 @@ imull   $3, %eax
 addl    $12, %eax
 imull   8(%ebp), %eax
 subl    $17, %eax
+
+The code accesses whatever was in M[8 + %ebp], call it x. Then it multiplies
+by 3, adds 12, multiplies the resulting value by x, and finally subtracts 17.
+Algebraically, the code computes x(3x+12)-17.
