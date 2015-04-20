@@ -1,3 +1,36 @@
 Answers for the "Arrays, Pointer Arithmetic, and Structs" section of CS24 HW3:
 
+1) Specify the value of each byte of the 16-byte region pointed to by p.
+0x0 00
+0x1 00
+0x2 00
+0x3 ef
+0x4 be
+0x5 ad
+0x6 de
+0x7 00
+0x8 00
+0x9 00
+0xa 00
+0xb 00
+0xc be
+0xd ba
+0xe fe
+0xf ca
 
+2) Specify the offset and size of each member in the struct.
+id is offset by 0, with size 4 bytes.
+code is offset by 4 bytes, with size 8 bytes.
+next is offset by 12 bytes, with size 4 bytes.
+
+What is the total size of the struct in memory?
+16 bytes
+
+How many bytes are unused?
+3 bytes are unused to pad the character array 'code'.
+
+3) What value of 'offset' will cause the last two lines of code to write the
+same byte?
+arr[4] gives us sizeof(entry) * 4 = 64 bytes before the struct we want to
+modify. There are 4 more bytes for id, and 3 more bytes for 'code', so to
+write the same byte, the offset would have to be 71.
