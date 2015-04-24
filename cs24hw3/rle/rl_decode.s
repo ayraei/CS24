@@ -41,8 +41,11 @@ rl_decode:
         jge     find_space_done
 
 find_space_loop:
-        add     -3(%ecx, %esi), %bl         # Add in the count, then move
-        add     $2, %esi                  # forward to the next count!
+        add     (%ecx, %esi), %bl         # Add in the count
+        jnc     no_carry                  # Check if addition overflowed
+        add     $256, %ebx                # Add carried digit back in
+no_carry:
+        add     $2, %esi                  # Move forward to the next count
 
         cmp     12(%ebp), %esi
         jl      find_space_loop
@@ -53,11 +56,19 @@ find_space_done:
         mov     16(%ebp), %edx    # edx = last pointer-argument to function
         mov     %ebx, (%edx)      # store computed size into this location
 
+        # Save caller-save registers
+        push    %ecx
+        push    %edx
+
         # Allocate memory for the decoded data using malloc.
         # Pointer to allocated memory will be returned in %eax.
         push    %ebx              # Number of bytes to allocate...
         call    malloc
         add     $4, %esp          # Clean up stack after call.
+        
+        # Restore caller-save registers
+        pop     %edx
+        pop     %ecx
 
         # Now, decode the data from the input buffer into the output buffer.
         xor     %esi, %esi
@@ -69,12 +80,12 @@ find_space_done:
 
 decode_loop:
         # Pull out the next [count][value] pair from the encoded data.
-        mov     -3(%ecx, %esi), %bh         # bh is the count of repetitions
-        mov     -2(%ecx, %esi), %bl        # bl is the value to repeat
+        mov     (%ecx, %esi), %bh         # bh is the count of repetitions
+        mov     1(%ecx, %esi), %bl        # bl is the value to repeat
 
 write_loop:
-        mov     %bl, -3(%eax, %edi)
-        inc     %edi
+        mov     %bl, (%eax, %edi)
+        inc     %edi                      # Advance the output offset
         dec     %bh
         jnz     write_loop
 

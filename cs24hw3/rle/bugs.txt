@@ -5,8 +5,16 @@ each count is proceeded by a character, we actually need to advance by 2
 instead of 1.
 
 Bug 2. Line 78 in original code.
-The original code does not increment edi after writing each repeated value,
-which is necessary to avoid writing over the same location in memory.
+Register edi is the offset from eax (beginning of output) where we wish to
+write each decoded character. The original code does not increment edi after
+writing each repeated value, which is necessary to avoid writing over the
+same location in memory.
 
-Bug 3. Line 35 in original code.
-word-alignment conflicts with the data being given in 1-byte chunks.
+Bug 3. Line 59 in original code.
+Original code does not save caller-save registers, which malloc then
+obliterates. Fix by pushing them before calling malloc, then popping
+afterwards.
+
+Bug 4. Line 44 in original code.
+Original code does not check if the addition to %bl overflows. If it does, we
+check the carry flag and adjust %ebx accordingly by adding 256 (= 2^8).
