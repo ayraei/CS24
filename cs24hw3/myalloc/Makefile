@@ -18,7 +18,6 @@ testunacceptable:	testalloc.o    unacceptable_myalloc.o sequence.o
 
 testmyalloc:	testalloc.o    myalloc.o sequence.o
 	gcc -o testmyalloc testalloc.o myalloc.o sequence.o
-
 			
 
 

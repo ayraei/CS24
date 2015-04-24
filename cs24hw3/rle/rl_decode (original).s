@@ -41,8 +41,8 @@ rl_decode:
         jge     find_space_done
 
 find_space_loop:
-        add     -3(%ecx, %esi), %bl         # Add in the count, then move
-        add     $2, %esi                  # forward to the next count!
+        add     (%ecx, %esi), %bl         # Add in the count, then move
+        add     $1, %esi                  # forward to the next count!
 
         cmp     12(%ebp), %esi
         jl      find_space_loop
@@ -69,12 +69,11 @@ find_space_done:
 
 decode_loop:
         # Pull out the next [count][value] pair from the encoded data.
-        mov     -3(%ecx, %esi), %bh         # bh is the count of repetitions
-        mov     -2(%ecx, %esi), %bl        # bl is the value to repeat
+        mov     (%ecx, %esi), %bh         # bh is the count of repetitions
+        mov     1(%ecx, %esi), %bl        # bl is the value to repeat
 
 write_loop:
-        mov     %bl, -3(%eax, %edi)
-        inc     %edi
+        mov     %bl, (%eax, %edi)
         dec     %bh
         jnz     write_loop
 

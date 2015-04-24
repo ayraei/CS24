@@ -1,0 +1,12 @@
+Bug 1. Line 45 in original code.
+add     $1, %esi
+This is supposed to advance the loop counter to the next 'count', but since
+each count is proceeded by a character, we actually need to advance by 2
+instead of 1.
+
+Bug 2. Line 78 in original code.
+The original code does not increment edi after writing each repeated value,
+which is necessary to avoid writing over the same location in memory.
+
+Bug 3. Line 35 in original code.
+word-alignment conflicts with the data being given in 1-byte chunks.
