@@ -20,7 +20,7 @@
  * init_myalloc(), and then myalloc() and free() work against this pool of
  * memory that mem points to.
  */
-int MEMORY_SIZE;
+ int MEMORY_SIZE;
 unsigned char *mem;
 
 
@@ -32,7 +32,16 @@ unsigned char *mem;
  *        variables for managing your memory pool in this section too.
  */
 static unsigned char *freeptr;
-int HEADER_SIZE = 8;
+#define HEADER_SIZE 8
+#define INT_SIZE 4
+
+/*
+ * HEADER STRUCTURE, 8 bytes
+ * First four bytes (int) is the [usable] size of the previous block.
+ * Second four bytes (int) is the [usable] size of the current block.
+ * These values are negative if the block is allocated, and positive if
+ * the block is free. (Or zero, for boundary conditions.)
+ */
 
 
 /*!
@@ -58,8 +67,13 @@ void init_myalloc() {
         abort();
     }
 
-    /* TODO:  You can initialize the initial state of your memory pool here. */
-    freeptr = mem;
+    /* Initialize entire memory pool as one free block followed by one empty
+     * block at the end (boundary condition). */
+    *((int *) mem) = 0;
+    *((int *) (mem + INT_SIZE)) = MEMORY_SIZE - 2*HEADER_SIZE;
+    
+    *((int *) (mem + MEMORY_SIZE - HEADER_SIZE)) = MEMORY_SIZE - 2*HEADER_SIZE;
+    *((int *) (mem + MEMORY_SIZE - HEADER_SIZE + INT_SIZE)) = 0;
 }
 
 
@@ -68,23 +82,54 @@ void init_myalloc() {
  * allocation fails.
  */
 unsigned char *myalloc(int size) {
-
-    /* TODO:  The unacceptable allocator simply checks to see if there are at
-     *        least "size" bytes left in the pool, and if so, the caller gets
-     *        the current "free-pointer" value, and then freeptr is incremented
-     *        by size bytes.
-     *
-     *        Your allocator will be more sophisticated!
-     */
-    if (freeptr + size < mem + MEMORY_SIZE) {
-        unsigned char *resultptr = freeptr;
-        freeptr += size;
-        return resultptr;
+    /* Pointer for the current block we are examining. */
+    unsigned char *curr = mem;
+    /* Amount of usable space in block curr. */
+    int curr_space = *((int *) (curr + INT_SIZE));
+    /* Amount of usable space in next block. */
+    /* We use abs(curr_space) because it will be negative if allocated. */
+    int next_space = *((int *) (curr + abs(curr_space) + INT_SIZE));
+    
+    /* Find the next available free block using first-fit strategy. */
+    while (size > curr_space && next_space != 0) {
+        /* Move to the next block. */
+        curr += HEADER_SIZE + abs(curr_space);
+        /* Recompute available space of new current and next blocks. */
+        curr_space = *((int *) (curr + INT_SIZE));
+        next_space = *((int *) (curr + abs(curr_space) + INT_SIZE));
     }
-    else {
+    
+    /* Reached the end of memory block and found no usable free blocks. */
+    if (size > curr_space) {
+        fprintf(stderr, "myalloc: cannot service request of size %d\n", size);
+        /*
         fprintf(stderr, "myalloc: cannot service request of size %d with"
                 " %d bytes allocated\n", size, (freeptr - mem));
+        */
         return (unsigned char *) 0;
+    }
+    
+    /* Else, curr points to a usable free block, so we allocate it. */
+    else {
+        /* Free block can be split. */
+        if (curr_space - size > 8) {
+            /* Set the second header value of the current block. */
+            *((int *) (curr + INT_SIZE)) = -size;
+            /* Set the first header value of the next block. */
+            *((int *) (curr + HEADER_SIZE + size)) = -size;
+            /* Set the second header value of the next block. */
+            *((int *) (curr + HEADER_SIZE + size + INT_SIZE)) =
+                curr_space - size - HEADER_SIZE;
+        }
+        /* Else, free block cannot be split; allocate the whole thing. */
+        else {
+            /* Set the second header value of the current block. */
+            *((int *) (curr + INT_SIZE)) *= -1;
+            /* Set the first header value of the next block. */
+            *((int *) (curr + HEADER_SIZE + curr_space)) = -curr_space;
+        }
+        
+        return curr + HEADER_SIZE;
     }
 }
 
@@ -94,12 +139,9 @@ unsigned char *myalloc(int size) {
  * myalloc().
  */
 void myfree(unsigned char *oldptr) {
-    /* TODO:
-     *
-     * The unacceptable allocator does nothing -- that's part of why this is
-     * unacceptable!
-     *
-     * Allocations will succeed for a little while...
-     */
+    oldptr -= HEADER_SIZE;
+    int curr_space = *((int *) (oldptr + INT_SIZE)) * -1;
+    *((int *) (oldptr + INT_SIZE)) *= -1;
+    *((int *) (oldptr + HEADER_SIZE + curr_space)) *= -1;
 }
 
