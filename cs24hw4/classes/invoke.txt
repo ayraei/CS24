@@ -1,0 +1,7 @@
+Assume 8(%ebp) contains the address of an object that is a properly
+initialized Shape subclass (e.g. a sphere), and we want to invoke the virtual
+function getVolume() on this object. Write the IA32 assembly instructions
+necessary to do this. Make sure to explain the sequence of operations.
+
+Ignore concerns about caller/callee-save registers, and also ignore how floats
+are returned. Just focus on how the method is invoked.
