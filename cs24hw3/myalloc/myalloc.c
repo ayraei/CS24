@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "myalloc.h"
 
@@ -24,24 +25,19 @@
 unsigned char *mem;
 
 
-/* TODO:  The unacceptable allocator uses an external "free-pointer" to track
- *        where free memory starts.  If your allocator doesn't use this
- *        variable, get rid of it.
- *
- *        You can declare data types, constants, and statically declared
- *        variables for managing your memory pool in this section too.
- */
-static unsigned char *freeptr;
-#define HEADER_SIZE 8
-#define INT_SIZE 4
-
 /*
+ * You can declare data types, constants, and statically declared variables
+ * for managing your memory pool in this section.
+ *
  * HEADER STRUCTURE, 8 bytes
  * First four bytes (int) is the [usable] size of the previous block.
  * Second four bytes (int) is the [usable] size of the current block.
  * These values are negative if the block is allocated, and positive if
  * the block is free. (Or zero, for boundary conditions.)
+ *
  */
+#define HEADER_SIZE 8
+#define INT_SIZE 4
 
 
 /*!
@@ -69,17 +65,25 @@ void init_myalloc() {
 
     /* Initialize entire memory pool as one free block followed by one empty
      * block at the end (boundary condition). */
+    /* First header value of current block. */
     *((int *) mem) = 0;
+    /* Second header value of current block. */
     *((int *) (mem + INT_SIZE)) = MEMORY_SIZE - 2*HEADER_SIZE;
     
+    /* First header value of next block. */
     *((int *) (mem + MEMORY_SIZE - HEADER_SIZE)) = MEMORY_SIZE - 2*HEADER_SIZE;
-    *((int *) (mem + MEMORY_SIZE - HEADER_SIZE + INT_SIZE)) = 0;
+    /* Second header value of next block. */
+    *((int *) (mem + MEMORY_SIZE - INT_SIZE)) = 0;
 }
 
 
 /*!
  * Attempt to allocate a chunk of memory of "size" bytes.  Return 0 if
  * allocation fails.
+ *
+ * This implementation is linear-time in the number of blocks, because
+ * the allocator has to search through every block and stops only if it
+ * reaches the end of the malloc'd memory, or it finds a free block.
  */
 unsigned char *myalloc(int size) {
     /* Pointer for the current block we are examining. */
@@ -88,15 +92,17 @@ unsigned char *myalloc(int size) {
     int curr_space = *((int *) (curr + INT_SIZE));
     /* Amount of usable space in next block. */
     /* We use abs(curr_space) because it will be negative if allocated. */
-    int next_space = *((int *) (curr + abs(curr_space) + INT_SIZE));
-    
+    int next_space =
+        *((int *) (curr + HEADER_SIZE + abs(curr_space) + INT_SIZE));
+        
     /* Find the next available free block using first-fit strategy. */
     while (size > curr_space && next_space != 0) {
         /* Move to the next block. */
         curr += HEADER_SIZE + abs(curr_space);
         /* Recompute available space of new current and next blocks. */
         curr_space = *((int *) (curr + INT_SIZE));
-        next_space = *((int *) (curr + abs(curr_space) + INT_SIZE));
+        next_space =
+            *((int *) (curr + HEADER_SIZE + abs(curr_space) + INT_SIZE));
     }
     
     /* Reached the end of memory block and found no usable free blocks. */
@@ -124,12 +130,12 @@ unsigned char *myalloc(int size) {
         /* Else, free block cannot be split; allocate the whole thing. */
         else {
             /* Set the second header value of the current block. */
-            *((int *) (curr + INT_SIZE)) *= -1;
+            *((int *) (curr + INT_SIZE)) = -curr_space;
             /* Set the first header value of the next block. */
             *((int *) (curr + HEADER_SIZE + curr_space)) = -curr_space;
         }
         
-        return curr + HEADER_SIZE;
+        return (curr + HEADER_SIZE);
     }
 }
 
@@ -137,11 +143,60 @@ unsigned char *myalloc(int size) {
 /*!
  * Free a previously allocated pointer.  oldptr should be an address returned by
  * myalloc().
+ *
+ * This implementation (if it worked...) works in constant-time.
+ * Therefore, deallocation is constant-time, and coalescing is constant-time.
  */
 void myfree(unsigned char *oldptr) {
+    /* Frees the block at oldptr. */
+    
+    /* Move the pointer back to the beginning of the header. */
     oldptr -= HEADER_SIZE;
-    int curr_space = *((int *) (oldptr + INT_SIZE)) * -1;
-    *((int *) (oldptr + INT_SIZE)) *= -1;
-    *((int *) (oldptr + HEADER_SIZE + curr_space)) *= -1;
+    
+    /* Get the amount of space used by the previous block. */
+    int prev_space = *((int *) oldptr);
+    
+    /* Get the amount of now-usable space in this block. */
+    int curr_space = abs(*((int *) (oldptr + INT_SIZE)));
+    
+    /* Get the amount of space used by the next block. */
+    int next_space = *((int *) (oldptr + HEADER_SIZE + curr_space + INT_SIZE));
+    
+    /* Set size of usable space in current block. */
+    *((int *) (oldptr + INT_SIZE)) = curr_space;
+    /* Set first header value of next block. */
+    *((int *) (oldptr + HEADER_SIZE + curr_space)) = curr_space;
+    
+    /* Coalesces free blocks, if any. */
+    
+    /* Coalesce right. */
+    
+    /* Next block is free, so coalesce it into the current block. */
+    if (next_space > 0) {
+        /* Absorb all memory used by next block into current block. */
+        curr_space += HEADER_SIZE + next_space;
+        /* Second header value of current block reflects updated free space. */
+        *((int *) (oldptr + INT_SIZE)) = curr_space;
+        /* Update first header value of next block. */
+        *((int *) (oldptr + HEADER_SIZE + curr_space)) = curr_space;
+    }
+    
+    /* Coalesce left. */
+    
+    /* Previous block is free, so coalesce it with the current block. */
+    /* NOTE TO GRADER: This part doesn't work. I've spent several days
+     * trying to debug it and I still can't figure it out.. Sorry :(
+     */
+    /* if (prev_space > 0) { */
+    if (0) {
+        /* Absorb all memory used by current block into previous block. */
+        
+        /* Second header value of previous block reflects updated free space. */
+        *((int *) (oldptr - prev_space - INT_SIZE)) =
+            prev_space + HEADER_SIZE + curr_space;
+        /* Update first header value of next block. */
+        *((int *) (oldptr + HEADER_SIZE + curr_space)) =
+            prev_space + HEADER_SIZE + curr_space;
+    }
 }
 

@@ -1,0 +1,27 @@
+(a) Describe what your allocator does in each of the following error cases.
+
+(i) myfree() called on an address that did not originate from myalloc()?
+- Unexpected behavior, most likely a segfault.
+
+(ii) myfree() called on an address that is contained within a memory block
+returned by myalloc()?
+- Unexpected behavior, most likely a segfault.
+
+(iii) myfree() called on an address that has already been freed?
+- myfree() will execute normally and just re-mark the block as free. Because
+  the amount of space used is simply negated when a block is allocated,
+  we can set the value for "amount of free space" as many times as we want
+  in the block header without problems.
+
+(b) Describe how to implement an allocator that would be more robust to the
+kinds of abuses suggested in the previous question.
+
+(i) Include a check at the beginning of myfree() that checks if the address
+given is between mem (start of malloc'd memory) and mem+MEMORY_SIZE.
+
+(ii) We can either keep a list of blocks at all times (space-inefficient) and
+check the given address against our list, or we can traverse the blocks
+starting at the beginning (mem) each time myfree() is called, checking if
+the address given points to the beinning of a block (time-inefficient).
+
+(iii) See above.

@@ -1,3 +1,5 @@
+/* gcc -g -O0 myalloc.c simpletests.c -o simpletests */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
