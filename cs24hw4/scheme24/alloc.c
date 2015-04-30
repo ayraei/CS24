@@ -268,7 +268,7 @@ void collect_garbage() {
     
     sweep_values();
     sweep_lambdas();
-    sweep_environments();
+    //sweep_environments();
 
 #ifndef ALWAYS_GC
     /* If we are still above the maximum allocation size, increase it. */
@@ -302,6 +302,8 @@ void collect_garbage() {
  * through its bindings and marks those objects.
  */
 void mark_environment(Environment *env) {
+    if (env == NULL)
+        return;
    int i;
 
    env->marked = 1;
@@ -317,6 +319,8 @@ void mark_environment(Environment *env) {
  * contents and marks those objects.
  */
 void mark_value(Value *v) {
+    if (v == NULL)
+        return;
     v->marked = 1;
     if (v->type == T_Lambda) {
         mark_lambda(v->lambda_val);
@@ -333,6 +337,8 @@ void mark_value(Value *v) {
  * contents and marks those objects.
  */
 void mark_lambda(Lambda *f) {
+    if (f == NULL)
+        return;
     f->marked = 1;
     if (f->native_impl == 0) {
         mark_value(f->arg_spec);
@@ -346,7 +352,22 @@ void mark_lambda(Lambda *f) {
  * objects in it.
  */
 void mark_eval_stack(PtrVector *p) {
-    return;
+    unsigned int i, j;
+    EvaluationContext *ec;
+    PtrVector *lv;
+    Value *ppv;
+    
+    for (i = 0; i < p->size; i++) {
+        ec = (EvaluationContext *) pv_get_elem(p, i);
+        mark_environment(ec->current_env);
+        mark_value(ec->expression);
+        mark_value(ec->child_eval_result);
+        lv = &(ec->local_vals);
+        for (j = 0; j < lv->size; j++) {
+            ppv = *((Value **) pv_get_elem(lv, j));
+            mark_value(ppv);
+        }
+    }
 }
  
  
@@ -407,7 +428,7 @@ void sweep_environments() {
    for (i = 0; i < allocated_environments.size; i++) {
        e = (Environment *) pv_get_elem(&allocated_environments, i);
        if (e != NULL && e->marked == 0) {
-           pv_set_elem(&allocated_lambdas, i, NULL);
+           pv_set_elem(&allocated_environments, i, NULL);
            free_environment(e);
        }
        else if (e != NULL) {
