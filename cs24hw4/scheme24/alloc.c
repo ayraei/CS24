@@ -7,7 +7,7 @@
 
 
 /*! Change to #define to output garbage-collector statistics. */
-#undef GC_STATS
+#define GC_STATS
 
 /*!
  * Change to #undef to cause the garbage collector to only run when it has to.
@@ -31,6 +31,15 @@ void free_environment(Environment *env);
 /*========================================================*
  * TODO:  Declarations of your functions might go here... *
  *========================================================*/
+ 
+ void mark_environment(Environment *env);
+ void mark_value(Value *v);
+ void mark_lambda(Lambda *f);
+ void mark_eval_stack(PtrVector *p);
+ 
+ void sweep_values();
+ void sweep_lambdas();
+ void sweep_environments();
 
 
 /*!
@@ -253,6 +262,13 @@ void collect_garbage() {
     eval_stack = get_eval_stack();
 
     /* ... TODO ... */
+    /* Marking phase. */
+    mark_environment(global_env);
+    mark_eval_stack(eval_stack);
+    
+    sweep_values();
+    sweep_lambdas();
+    sweep_environments();
 
 #ifndef ALWAYS_GC
     /* If we are still above the maximum allocation size, increase it. */
@@ -280,3 +296,124 @@ void collect_garbage() {
 #endif
 }
 
+
+/*
+ * Helper function that marks the environment given, then iterates
+ * through its bindings and marks those objects.
+ */
+void mark_environment(Environment *env) {
+   int i;
+
+   env->marked = 1;
+
+   for (i = 0; i < env->num_bindings; i++) {
+       mark_value(env->bindings[i].value);
+   }
+}
+
+
+/*
+ * Helper function that marks the value given, then iterates through its
+ * contents and marks those objects.
+ */
+void mark_value(Value *v) {
+    v->marked = 1;
+    if (v->type == T_Lambda) {
+        mark_lambda(v->lambda_val);
+    }
+    if (v->type == T_ConsPair) {
+        mark_value(v->cons_val.p_car);
+        mark_value(v->cons_val.p_cdr);
+    }
+}
+
+
+/*
+ * Helper function that marks the lambda given, then iterates through its
+ * contents and marks those objects.
+ */
+void mark_lambda(Lambda *f) {
+    f->marked = 1;
+    if (f->native_impl == 0) {
+        mark_value(f->arg_spec);
+        mark_value(f->body);
+    }
+}
+
+
+/*
+ * Helper function that iterates through the evaluation stack and marks
+ * objects in it.
+ */
+void mark_eval_stack(PtrVector *p) {
+    return;
+}
+ 
+ 
+/*
+ * Helper function that traverses the allocated_values vector and
+ * unmarks a marked value, or deletes (free) an unmarked value.
+ */
+void sweep_values() {
+   unsigned int i;
+   Value *v;
+   
+   for (i = 0; i < allocated_values.size; i++) {
+       v = (Value *) pv_get_elem(&allocated_values, i);
+       if (v != NULL && v->marked == 0) {
+           pv_set_elem(&allocated_values, i, NULL);
+           free_value(v);
+       }
+       else if (v != NULL) {
+           v->marked = 0;
+       }
+   }
+   
+   pv_compact(&allocated_values);
+}
+
+
+/*
+ * Helper function that traverses the allocated_lambdas vector and
+ * unmarks a marked lambda, or deletes (free) an unmarked lambda.
+ */
+void sweep_lambdas() {
+   unsigned int i;
+   Lambda *l;
+   
+   for (i = 0; i < allocated_lambdas.size; i++) {
+       l = (Lambda *) pv_get_elem(&allocated_lambdas, i);
+       if (l != NULL && l->marked == 0) {
+           pv_set_elem(&allocated_lambdas, i, NULL);
+           free_lambda(l);
+       }
+       else if (l != NULL) {
+           l->marked = 0;
+       }
+   }
+   
+   pv_compact(&allocated_lambdas);
+}
+
+
+/*
+ * Helper function that traverses the allocated_environments vector and
+ * unmarks a marked environment, or deletes (free) an unmarked environment.
+ */
+void sweep_environments() {
+   unsigned int i;
+   Environment *e;
+   
+   for (i = 0; i < allocated_environments.size; i++) {
+       e = (Environment *) pv_get_elem(&allocated_environments, i);
+       if (e != NULL && e->marked == 0) {
+           pv_set_elem(&allocated_lambdas, i, NULL);
+           free_environment(e);
+       }
+       else if (e != NULL) {
+           e->marked = 0;
+       }
+   }
+   
+   pv_compact(&allocated_environments);
+}
