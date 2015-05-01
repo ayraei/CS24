@@ -1,7 +1,16 @@
-Assume 8(%ebp) contains the address of an object that is a properly
-initialized Shape subclass (e.g. a sphere), and we want to invoke the virtual
-function getVolume() on this object. Write the IA32 assembly instructions
-necessary to do this. Make sure to explain the sequence of operations.
+/*
+ * Because getVolume() is a virtual function and each subclass implements
+ * a different version of the function, we set getVolume as a function
+ * pointer that is followed at runtime. This function pointer is the first
+ * value/field of the Shape struct.
+ */
 
-Ignore concerns about caller/callee-save registers, and also ignore how floats
-are returned. Just focus on how the method is invoked.
+    /* Copy the address of the Shape into edx */
+    mov 8(%ebp), %edx
+    
+    /* Copy the pointer to getVolume into ecx */
+    mov (%edx), %ecx
+    
+    /* Call the function that ecx points to. */
+    push %edx   /* the argument to getVolume */
+    call (%ecx)

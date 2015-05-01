@@ -7,7 +7,7 @@
  * implementation instead of the standard one, or undefine it if you
  * want to stick with the standard one!
  */
-#undef ENABLE_MY_SETJMP
+#define ENABLE_MY_SETJMP
 
 
 #ifdef ENABLE_MY_SETJMP
@@ -18,7 +18,7 @@
  */
 
 /* TODO:  Set this to the proper size for your jump-buffer. */
-#define MY_JB_LEN 0
+#define MY_JB_LEN 6
 typedef int my_jmp_buf[MY_JB_LEN];
 
 int my_setjmp(my_jmp_buf buf);
