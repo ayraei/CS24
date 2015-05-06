@@ -1,0 +1,63 @@
+void draw_pixel(Screen *s, int x, int y,
+                unsigned char value, unsigned char depth);
+
+/* ===== FIRST ITERATION OF PSEUDOCODE ===== */
+
+/* First check if the coordinate given is out of bounds. */
+w = s->width
+h = s->height
+
+if (x < 0 OR x >= w OR y < 0 OR y >= h)
+    return
+
+/* Compute location of Pixel[x, y]. */
+coord = y*w + x
+/* Its byte offset from the beginning of the Screen struct. */
+loc = 8 + 2 * coord
+
+/* Check depth. */
+d = Mem[loc + 1]
+if (d >= depth)
+    Mem[loc] = value
+
+return
+
+/* ===== PSEUDOCODE WITH SOME IA32 TRANSLATIONS ===== */
+
+/* First check if the coordinate given is out of bounds. */
+w = Mem[s]
+h = Mem[s+4]
+
+t = x < 0
+if (t)
+    goto done
+t = x >= w
+if (t)
+    goto done
+t = y < 0
+if (t)
+    goto done
+t = y >= h
+if (t)
+    goto done
+goto valid
+
+done:
+    return
+
+valid:
+    /* Compute location of Pixel[x, y]. */
+    coord = y*w + x
+    /* Its byte offset from the beginning of the Screen struct. */
+    loc = 8 + 2 * coord
+
+    /* Check depth. */
+    d = Mem[loc + 1]
+    
+    t = d >= depth
+    if (t)
+        goto draw
+    goto done   /* Might as well reuse the label... */
+
+draw:
+    Mem[loc] = value

@@ -42,4 +42,199 @@ Step 1:  A = alloc(6000);
 
 ==== PUT YOUR ANSWERS BELOW THIS LINE ====
 
+a) If the maximum memory heap size is 2^31 bytes, the maximum size order the
+allocator can provide can be found by solving MIN_BLOCK_SIZE * 2^x = 2^31,
+so maximum order = x = 31 - 5 = 26.
 
+The free-list array will be length 27 because the allocator can provide
+blocks with order in [0, 26].
+
+b) Pseudocode for get_order_of_size:
+/* Determines the block order size necessary for contents of size 'size'. */
+int get_order_of_size(int size) {
+    if (size <= 0) {
+        /* Allocating 0 or less memory makes no sense. */
+        raise an exception;
+    }
+    
+    int order = 0;
+    
+    /* while(true) presumes that this function will simply compute the
+     * smallest order block required to hold contents with size 'size'; it
+     * does not consider whether the heap actually allows blocks of that
+     * size (i.e. it is possible the value returned exceeds the size of the
+     * heap).
+     */
+    while (true) {
+        /* Uses bit-shifting to calculate powers of 2. */
+        if ((1 << order) * MIN_BLOCK_SIZE >= size) {
+            return order;
+        }
+        order++;
+    }
+}
+
+c) Describe how the allocator should detect whether a request cannot be
+satisfied.
+
+There are three cases when the allocator cannot satisfy a request for memory:
+
+    1) The size requested is not positive. Requesting 0 memory, as well as
+    negative amounts of memory, is silly. Detect this with a simple
+    if-statement.
+    
+    2) The size requested exceeds the size of the heap. Detect this by
+    finding the smallest order block that can hold 'size' memory using the
+    function written in part (b), or by comparing directly with
+    MIN_BLOCK_SIZE * 2^MAX_ORDER.
+    
+    3) There are no free blocks at or above the requested size. First we need
+    to compute the smallest block order that can hold the requested size
+    (min_order). Then we need to check the free-list array for blocks of order
+    min_order and above--for example, free_list[min_order],
+    free_list[min_order + 1], ..., free_list[MAX_ORDER].
+    Then, if no free blocks are found, we cannot satisfy the memory request and
+    must return NULL.
+
+d) Using the diagram provided...
+
+Initial:
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |09 _                                                                           |
+  |16KB                                                                           |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+A = allocate(1400);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 A     |06 _     |07 _               |O8 _                                   |
+  |1400     |2KB      |4KB                |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+B = allocate(5500);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 A     |06 _     |07 _               |O8 B                                   |
+  |1400     |2KB      |4KB                |5500                                   |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+C = allocate(800);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 A     |05 C|05 _|07 _               |O8 B                                   |
+  |1400     |800 |1KB |4KB                |5500                                   |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+D = allocate(3200);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 A     |05 C|05 _|07 D               |O8 B                                   |
+  |1400     |800 |1KB |3200               |5500                                   |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+free(A);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 _     |05 C|05 _|07 D               |O8 B                                   |
+  |2KB      |800 |1KB |3200               |5500                                   |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+E = allocate(700);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 _     |05 C|05 E|07 D               |O8 B                                   |
+  |2KB      |800 |700 |3200               |5500                                   |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+free(B);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 _     |05 C|05 E|07 D               |O8 _                                   |
+  |2KB      |800 |700 |3200               |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+free(C);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 _     |05 _|05 E|07 D               |O8 _                                   |
+  |2KB      |1KB |700 |3200               |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+free(E);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 _     |05 _|05 _|07 D               |O8 _                                   |
+  |2KB      |1KB |1KB |3200               |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O6 _     |06 _     |07 D               |O8 _                                   |
+  |2KB      |2KB      |3200               |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O7 _               |07 D               |O8 _                                   |
+  |4KB                |3200               |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+free(D);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O7 _               |07 _               |O8 _                                   |
+  |4KB                |4KB                |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O8 _                                   |O8 _                                   |
+  |8KB                                    |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |09 _                                                                           |
+  |16KB                                                                           |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+After step 4 [i.e. after A, B, C, and D have been allocated], how many bytes
+are available to satisfy allocation requests? How many are unavailable?
+
+Available: 1KB = 1024 bytes.
+Not available:
+    (2*1024 - 1400) + (8*1024 - 5500) + (1024 - 800) + (4*1024 - 3200)
+  = 648 + 2692 + 224 + 896
+  = 4460 bytes.
+
+Bytes not available is calculated by summing over the difference between
+each allocation request and the block size it was given. The calculation above
+is listed in A, B, C, D order.
+
+e) Our buddy allocator is very inefficient when allocating memory for a
+request size that isn't a power of 2. This is increasingly more inefficient as
+the block size grows exponentially, so although allocating 1KB of memory for
+a request of 600 bytes might "only" waste 424 bytes of memory, allocating
+16KB of memory for a request of 8KB + 1B wastes almost 8KB of memory.
+So in the worst-case scenario, the entire heap could be allocated (in that
+no more blocks are available) but only about half the heap would be actually
+used (if all requests are of size 2^n + 1 bytes).
+
+f) First-fit, next-fit, best-fit?
+
+This strategy is closest to the first-fit placement strategy, as mentioned
+in the lecture notes (8.12) about explicit free-lists. Once we find the
+smallest order block necessary, we can start our search for a free block
+at free_list[min_order] all the way up to free_list[MAX_ORDER], returning
+the first free block we find.
+
+g) Deferred coalescing situation:
+
+One possible scenario in which deferred coalescing would be preferrable over
+immediate coalescing is when it is known in advance that all incoming size
+requests will be the same size (or at least all fit in the same size blocks).
+
+In this scenario, once the heap has been initially divided up into the
+appropriate size from the first requests, deferred coalescing saves us from
+having to coalesce and then re-divide the blocks of memory repeatedly.
+This saves us from having to update the free-list in multiple locations
+(which would be the case when we coalesce, since we must remove each
+buddied block from its free-list) and so saves us several operations
+each time we call free().
