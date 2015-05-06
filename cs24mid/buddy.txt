@@ -1,0 +1,45 @@
+Put your answers for the buddy-allocator problem in this file.  (The diagrams
+will be > 80 characters wide; all other lines should be 80 characters or less.)
+
+For part d, you can describe the heap state as follows:
+
+Initial:
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |                                                                               |
+  |                                                                               |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+Step i:  alloc/free stuff
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |                                                                               |
+  |                                                                               |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+Indicate boundaries between blocks with "|" characters.  Since the
+problem specifies a 16KB heap, each "+----+" section represents 1KB.
+
+At the start of each allocated or free block in the heap, put the
+following values:
+
+ * On the first line, put "Ox _" where x is the order of the block, and
+   "_" indicates a free block, or A/B/C/D/E indicates the name of the
+   allocated block.
+
+ * On the second line, put the size of the block:  for a free block, you
+   can put "xxKB", where this is the size of the free block.  For a used
+   block, put "xxxx", indicating the number of bytes in the used block.
+
+For example, after a 6000 byte allocation, you might have this:
+
+Step 1:  A = alloc(6000);
+
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+  |O8 A                                   |O8 _                                   |
+  |6000                                   |8KB                                    |
+  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+==== PUT YOUR ANSWERS BELOW THIS LINE ====
+
+
