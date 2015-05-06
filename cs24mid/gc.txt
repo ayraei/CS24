@@ -1,0 +1,45 @@
+a) A cons-pair cell can only reference cells that were allocated before it.
+This is because once created, the cell's value cannot change, so we can't
+reference cells that haven't been allocated yet when we create the cons-pair
+cell. In other words, only cells reachable from the linked-list starting at
+the cons-pair cell's prev_alloc pointer can be referenced.
+
+b) Pseudocode for mark-and-sweep GC.
+
+gc() {
+    cell curr = newest();
+    cell next;
+    /* Traverse through the whole list of allocated cells. */
+    while (curr != oldest()) {
+        /* Mark root cells. */
+        if (is_root(curr)) {
+            set_marked(curr, true);
+        }
+        
+        /* If current cell is marked, check if it is a cons-pair, and if so,
+         * mark the cells it references as well.
+         */
+        if (is_marked(curr) && is_cons(curr)) {
+            set_marked(car(curr), true);
+            set_marked(cdr(curr), true);
+        }
+        
+        /* Temporarily store the next block if 'curr' needs to be freed. */
+        next = curr->prev_alloc;
+        
+        if (!is_marked(curr)) {
+            free(curr);
+        }
+        
+        /* Advance current cell. */
+        curr = next;
+    }
+}
+
+c) The algorithm described above cannot be paused and resumed. Because we are
+traversing the linked-list of cells in newest-to-oldest order, if (after
+pausing garbage collection) new cons-pairs cells are created that reference
+cells in the list between the 'curr' where we interrupted and the oldest()
+cell, we have no way to mark them according to the newer references. And
+since we are sweeping (freeing) in the same pass as marking, it would be
+possible for this algorithm to reclaim reachable memory if paused and resumed.
