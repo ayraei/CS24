@@ -1,0 +1,24 @@
+1) Offsets of the labels:
+
+MUL_LOOP = 3
+SKIP_ADD = 7
+MUL_DONE = 10
+
+2) Assembly and encoded bit patterns for the operations.
+
+R5 := R5 - 6
+
+Assembly:
+    SUB     6, R5
+
+Bit pattern:
+    1010 0 101      00000110
+
+
+R4 := R4 ^ R1
+
+Assembly:
+    XOR     R1, R4
+
+Bit pattern:
+    1110 1 100      00000 001

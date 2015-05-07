@@ -86,11 +86,78 @@ void fetch_and_decode(InstructionStore *is, Decode *d, ProgramCounter *pc) {
     /* All instructions have at least one byte, so read the first byte. */
     ifetch(is);   /* Cause InstructionStore to push out the instruction byte */
     instr_byte = pin_read(d->input);
-
-    /*=====================================================*/
-    /* TODO:  Fill in the implementation of the multi-byte */
-    /*        instruction decoder.                         */
-    /*=====================================================*/
+    
+    
+    /* Get the opcode from the first instruction byte. */
+    operation = instr_byte >> 4;
+    unsigned char reg1, reg2;
+    /* Then decide what to do next. */
+    switch(operation) {
+        /* If opcode is DONE, we don't need to set anything. */
+        case OP_DONE:
+            break;
+        
+        /* One-argument instructions occupy one byte.
+         * This byte takes the form [op3 op2 op1 op0 x src2 src1 src0]
+         * src2 src1 src0 specify the register to perform the operation on,
+         * as well as where to store the result.
+         * All six operations write back to the register.
+         */
+        case OP_DEC:
+        case OP_NEG:
+        case OP_INV:
+        case OP_SHL:
+        case OP_SHR:
+            src1_addr = src2_addr = dst_addr = instr_byte & 0x07;
+            dst_write = WRITE_REG;
+            break;
+        
+        /* Two-argument instructions occupy two bytes.
+         * The first four bits of the first byte is the opcode.
+         * The fifth bit of the first byte specifies whether the first
+         * argument is a constant or a register. (= src1_isreg)
+         * The last three bytes of the first byte specify the second register
+         * argument. (= src2_addr as well as dst_addr)
+         * Then we increment the program counter and fetch the next instruction
+         * byte.
+         * Depending on whether src1_isreg, we specify the first register
+         * argument (= src1_addr) or the first argument constant (= src1_const)
+         * All six operations write to the destination register.
+         */
+        case OP_MOV:
+        case OP_ADD:
+        case OP_SUB:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
+            src2_addr = dst_addr = instr_byte & 0x07;
+            src1_isreg = (instr_byte & 0x08) >> 3;
+            incrPC(pc);
+            ifetch(is);
+            instr_byte = pin_read(d->input);
+            if (src1_isreg) {
+                src1_addr = instr_byte & 0x07;
+            }
+            else {
+                src1_const = instr_byte;
+            }
+            dst_write = WRITE_REG;
+            break;
+        
+        /* Branching instructions occupy one byte.
+         * The first four bits are the opcode, and the last four bits
+         * are the branching address. (= branch_addr)
+         */
+        case OP_BRA:
+        case OP_BRZ:
+        case OP_BNZ:
+            branch_addr = instr_byte & 0x0f;
+            break;
+        
+        default:
+            fprintf(stderr, "Opcode %d not recognized!\n", operation);
+            break;
+    }
 
     /* All decoded!  Write out the decoded values. */
 
