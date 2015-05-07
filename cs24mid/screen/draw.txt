@@ -1,6 +1,7 @@
 void draw_pixel(Screen *s, int x, int y,
                 unsigned char value, unsigned char depth);
 
+
 /* ===== FIRST ITERATION OF PSEUDOCODE ===== */
 
 /* First check if the coordinate given is out of bounds. */
@@ -16,9 +17,9 @@ coord = y*w + x
 loc = 8 + 2 * coord
 
 /* Check depth. */
-d = Mem[loc + 1]
+d = s[loc + 1]
 if (d >= depth)
-    Mem[loc] = value
+    s[loc] = value
 
 return
 
@@ -52,12 +53,14 @@ valid:
     loc = 8 + 2 * coord
 
     /* Check depth. */
-    d = Mem[loc + 1]
+    d = Mem[s + loc + 1]
     
+    /* If new pixel is in front of existing pixel, draw it. */
     t = d >= depth
     if (t)
         goto draw
-    goto done   /* Might as well reuse the label... */
+    goto done
 
 draw:
-    Mem[loc] = value
+    Mem[s + loc] = value
+    goto done

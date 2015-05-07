@@ -33,7 +33,7 @@ done:
 
 valid:
     /* Compute location of Pixel[x, y]. */
-    mov 16(%ebp), %esi      /* %esi holds the Pixel coordinate */
+    mov 16(%ebp), %esi      /* %esi will hold the Pixel coordinate */
     imul %eax, %esi         /* currently coord = y*w */
     add 12(%ebp), %esi      /* coord = y*w + x */
     
@@ -42,11 +42,12 @@ valid:
     add $8, %esi            /* loc = 8 + 2*coord */
 
     /* Check depth. */
-    mov 1(%ecx, %esi), %edi /* %edi holds d = Screen[loc + 1] */
-    cmp 21(%ebp), %edi      /* Check if d >= depth */
+    movzb 1(%ecx, %esi), %edx     /* %edx holds d = Mem[s + loc + 1] */
+    cmp 21(%ebp), %edx      /* Check if d >= depth */
     jge draw                /* If yes, draw the pixel */
     jmp done                /* Otherwise, ignore and return */
 
 draw:
-    mov 20(%ebp), %eax      /* temporarily store 'value' argument */
-    mov %eax, (%ecx, %esi)  /* Screen[loc] = value */
+    movzb 20(%ebp), %eax    /* temporarily store 'value' argument */
+    movb %al, (%ecx, %esi)  /* Mem[s + loc] = value */
+    jmp done
