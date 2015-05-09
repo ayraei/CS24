@@ -1,0 +1,19 @@
+Multimap Caching Performance
+============================
+
+b)  Output of mmperf:
+
+
+
+c)  Explanation of tests:
+
+
+
+e)  Explanation of your optimizations:
+
+
+
+f)  Output of ommperf:
+
+
+
