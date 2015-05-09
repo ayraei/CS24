@@ -1,0 +1,26 @@
+(a) Your application is completing only 750M instructions per second.
+What is the miss rate?
+
+3 GHz = 3 x 10^9 cycles/sec
+
+Miss time = 100 cycles
+Hit time = 1 cycle
+Miss rate = x
+Hit rate = 1-x
+
+750M instructions/sec =
+(3 x 10^9 cycles/sec)*(1/( (1-x)*1 + x*100 ) instructions/cycle)
+=> (750 x 10^6) = (3 x 10^9)*(1/(99x+1))
+=> 99x = 3
+=> x = 1/33
+
+So the miss rate is approximately 3%.
+
+(b) If you want to double the performance, by how much will you need to reduce
+the cache miss rate?
+
+2(750 x 10^6) = (3 x 10^9)*(1/(99x+1))
+=> 99x = 1
+=> x = 1/99
+
+So the miss rate must be improved to ~1%.
