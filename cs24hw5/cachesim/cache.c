@@ -291,11 +291,15 @@ void decompose_address(cache_t *p_cache, addr_t address,
     assert(tag != NULL);
     assert(set != NULL);
     assert(offset != NULL);
-
-    /* TODO:  IMPLEMENT */
-    *offset = 0;
-    *set = 0;
-    *tag = 0;
+    
+    unsigned int off_bits = p_cache->block_offset_bits;
+    unsigned int sets_bits = p_cache->sets_addr_bits;
+    unsigned int block_size = p_cache->block_size;
+    unsigned int num_sets = p_cache->num_sets;
+    
+    *offset = address & (block_size - 1);
+    *set = address & ((num_sets - 1) << block_offset_bits);
+    *tag = address & ((;
 }
 
 
