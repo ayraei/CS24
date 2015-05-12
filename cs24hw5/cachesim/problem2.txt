@@ -1,0 +1,9 @@
+(d) Direct-mapped cache of size 8192 bytes, block size of 32 bytes.
+
+./heaptest 32:256:1
+
+Cache miss-rate: 
+
+(e) Fully associative cache of size 8192 bytes, block size of 32 bytes.
+
+./heaptest 32:1:256

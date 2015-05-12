@@ -299,8 +299,8 @@ void decompose_address(cache_t *p_cache, addr_t address,
     unsigned int mask = 0;
     
     *offset = address & (block_size - 1);
-    *set = address & ((num_sets - 1) << block_offset_bits);
-    *tag = address & ((mask - 1) << (block_offset_bits + sets_addr_bits));
+    *set = (address >> off_bits ) & (num_sets - 1);
+    *tag = (address >> (sets_bits + off_bits)) & (mask - 1);
 }
 
 
@@ -310,9 +310,12 @@ void decompose_address(cache_t *p_cache, addr_t address,
  * the memory.
  */
 addr_t get_block_start_from_address(cache_t *p_cache, addr_t address) {
-    /* TODO:  IMPLEMENT */
+    assert(p_cache != NULL);
     
-    return 0;
+    unsigned int off_bits = p_cache->block_offset_bits;
+    unsigned int num_sets = p_cache->num_sets;
+    
+    return address & ((num_sets - 1) << off_bits);
 }
 
 
@@ -320,6 +323,8 @@ addr_t get_block_start_from_address(cache_t *p_cache, addr_t address) {
  * cache, and returns the offset within the block that the access occurs at.
  */
 addr_t get_offset_in_block(cache_t *p_cache, addr_t address) {
+    assert(p_cache != NULL);
+    
     unsigned int block_size = p_cache->block_size;
     
     return address & (block_size - 1);
@@ -333,8 +338,17 @@ addr_t get_offset_in_block(cache_t *p_cache, addr_t address) {
  */
 addr_t get_block_start_from_line_info(cache_t *p_cache,
                                       addr_t tag, addr_t set_no) {
-    /* TODO:  IMPLEMENT */
-    return 0;
+    assert(p_cache != NULL);
+    
+    unsigned int off_bits = p_cache->block_offset_bits;
+    unsigned int sets_bits = p_cache->sets_addr_bits;
+    unsigned int ret = 0;
+    
+    ret = tag;
+    ret = (ret << sets_bits) + set_no;
+    ret = ret << off_bits;
+    
+    return ret;
 }
 
 
@@ -344,12 +358,21 @@ addr_t get_block_start_from_line_info(cache_t *p_cache,
  */
 cacheline_t * find_line_in_set(cacheset_t *p_set, addr_t tag) {
     cacheline_t *found_line = NULL;
+    cacheline_t *curr = p_set->cache_lines;
 
 #if DEBUG_CACHE
     printf(" * Finding line with tag %u in cache set:\n", tag);
 #endif
 
-    /* TODO:  IMPLEMENT */
+    int num_lines = p_set->num_lines;
+    int i;
+    
+    for (i = 0; i < num_lines; i++) {
+        if (curr[i].valid && curr[i].tag == tag) {
+            found_line = &curr[i];
+            break;
+        }
+    }
 
     return found_line;
 }
