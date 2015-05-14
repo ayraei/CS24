@@ -1,6 +1,6 @@
 # MacOS X flags for building for 32-bit Pentium Pro
-ASFLAGS=-arch i686
-CFLAGS=-arch i686
+#ASFLAGS=-arch i686
+#CFLAGS=-arch i686
 
 OBJS=cpuid.o cpuid_ext.o cpuinfo.o
 
