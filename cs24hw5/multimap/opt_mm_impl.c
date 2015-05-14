@@ -259,18 +259,6 @@ int remove_mm_node_helper(multimap_node *node, multimap_node *to_remove) {
 /* This helper function frees all values in a multimap node's value-list. */
 void free_multimap_values(int *values) {
     free(values);
-    
-    /*
-    while (values != NULL) {
-        multimap_value *next = values->next;
-#ifdef DEBUG_ZERO
-        // Clear out what we are about to free, to expose issues quickly.
-        bzero(values, sizeof(multimap_value));
-#endif
-        free(values);
-        values = next;
-    }
-    */
 }
 
 
@@ -406,7 +394,7 @@ int mm_remove_pair(multimap *mm, int key, int value) {
             found = 1;
             /* Doesn't matter if there are unused array cells at the end of
              * array 'values'. So just move the last value into the current
-             * location.
+             * location. The whole chunk of memory will get freed eventually.
              */
             values[i] = values[node->num_values - 1];
             node->num_values--;
