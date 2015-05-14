@@ -49,3 +49,14 @@ The second three tests have fewer probes than keys. The keys can fall anywhere
 within the range 0-99999, so the tree will most likely be very large. Thus,
 the performance of searching through a large tree--searching through keys--is
 being tested.
+
+(e) Optimizations
+
+Having a linked-list structure store values makes searching for values
+inefficient because each subsequent node of the linked-list is somewhere
+different in memory. The linked-list structure was changed to an array. This
+makes searching for values (once a key is found) much more cache-friendly,
+because arrays are stored in a contiguous block of memory. Although this
+array needs to be resized (reallocated...) every time we insert or delete
+a new value, that's okay because we aren't measuring the performance of those
+operations.

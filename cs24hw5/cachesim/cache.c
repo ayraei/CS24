@@ -319,8 +319,6 @@ addr_t get_block_start_from_address(cache_t *p_cache, addr_t address) {
     assert(p_cache != NULL);
     
     unsigned block_size = p_cache->block_size;
-    unsigned int off_bits = p_cache->block_offset_bits;
-    unsigned int num_sets = p_cache->num_sets;
     
     return address & (0 - block_size + 1);
 }
