@@ -13,7 +13,7 @@
 /* Set this to 0 to activate your custom replacement policy, which is
  * hopefully smarter and better than a random replacement policy!
  */
-#define RANDOM_REPLACEMENT_POLICY 1
+#define RANDOM_REPLACEMENT_POLICY 0
 
 
 /* Local functions used by the cache implementation, roughly in order of
@@ -126,6 +126,9 @@ unsigned char cache_read_byte(membase_t *mb, addr_t address) {
     printf(" * Block offset within cache line:  %u\n", block_offset);
 #endif
     
+    /* Modify the cache line's last access time. */
+    p_line->access_time = clock_tick();
+    
     /* Return the byte read by the requester. */
     p_cache->num_reads++;
     return p_line->block[block_offset];
@@ -142,6 +145,9 @@ void cache_write_byte(membase_t *mb, addr_t address, unsigned char value) {
     p_cache->num_writes++;
     p_line->block[block_offset] = value;
     p_line->dirty = 1;
+    
+    /* Modify the cache line's last access time. */
+    p_line->access_time = clock_tick();
 }
 
 
@@ -312,10 +318,11 @@ void decompose_address(cache_t *p_cache, addr_t address,
 addr_t get_block_start_from_address(cache_t *p_cache, addr_t address) {
     assert(p_cache != NULL);
     
+    unsigned block_size = p_cache->block_size;
     unsigned int off_bits = p_cache->block_offset_bits;
     unsigned int num_sets = p_cache->num_sets;
     
-    return address & ((num_sets - 1) << off_bits);
+    return address & (0 - block_size + 1);
 }
 
 
@@ -346,7 +353,7 @@ addr_t get_block_start_from_line_info(cache_t *p_cache,
     
     ret = tag;
     ret = (ret << sets_bits) + set_no;
-    ret = ret << off_bits;
+    ret = ret << off_bits;    
     
     return ret;
 }
@@ -393,8 +400,24 @@ cacheline_t * choose_victim(cacheset_t *p_set) {
     i_victim = rand() % p_set->num_lines;
     victim = p_set->cache_lines + i_victim;
 #else
-    /* TODO:  Implement the LRU eviction policy. */
-    abort();
+    /* Use the LRU eviction policy. */
+    cacheline_t *curr = p_set->cache_lines;
+
+    int num_lines = p_set->num_lines;
+    int i;
+    unsigned long long int lowest_access = -1;
+    
+    for (i = 0; i < num_lines; i++) {
+        if (!curr[i].valid) {
+            victim = &curr[i];
+            break;
+        }
+        else if (curr[i].access_time < lowest_access) {
+            lowest_access = curr[i].access_time;
+            victim = &curr[i];
+        }
+    }
+
 #endif
     
 #if DEBUG_CACHE

@@ -2,8 +2,12 @@
 
 ./heaptest 32:256:1
 
-Cache miss-rate: 
+Cache miss-rate with random replacement: 2.40%
+Cache miss-rate with LRU replacement: 2.40%
 
 (e) Fully associative cache of size 8192 bytes, block size of 32 bytes.
 
 ./heaptest 32:1:256
+
+Cache miss-rate with random replacement: 2.45%
+Cache miss-rate with LRU replacement: 2.26%
