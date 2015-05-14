@@ -1,3 +1,5 @@
+(b) ./mmperf output
+
 Testing multimap performance:  300000 pairs, 1000000 probes, random keys.
 Adding 300000 pairs to multimap.  Keys in range [0, 50), values in range [0, 1000).
 Probing multimap 1000000 times.  Keys in range [0, 50), values in range [0, 1000).
@@ -34,3 +36,16 @@ Probing multimap 50000 times.  Keys in range [0, 100000), values in range [0, 50
 Total hits:  980/50000 (2.0%)
 Total wall-clock time:  39.33 seconds		us per probe:  786.598 us
 
+
+(c) What part of multimap is being exercised?
+
+In the first three tests, there are many more probes than pairs added to
+multimap. The keys fall within a very narrow range of 0-49 as well, so the
+tree is very small, but there will be many repeated keys and the linked list
+at each node will be very long. So, they are testing the performance of
+searching through multiple values in the linked list, once a key is found.
+
+The second three tests have fewer probes than keys. The keys can fall anywhere
+within the range 0-99999, so the tree will most likely be very large. Thus,
+the performance of searching through a large tree--searching through keys--is
+being tested.
