@@ -302,11 +302,10 @@ void decompose_address(cache_t *p_cache, addr_t address,
     unsigned int sets_bits = p_cache->sets_addr_bits;
     unsigned int block_size = p_cache->block_size;
     unsigned int num_sets = p_cache->num_sets;
-    unsigned int mask = 0;
     
     *offset = address & (block_size - 1);
     *set = (address >> off_bits ) & (num_sets - 1);
-    *tag = (address >> (sets_bits + off_bits)) & (mask - 1);
+    *tag = (address >> (sets_bits + off_bits));
 }
 
 
@@ -320,7 +319,7 @@ addr_t get_block_start_from_address(cache_t *p_cache, addr_t address) {
     
     unsigned block_size = p_cache->block_size;
     
-    return address & (0 - block_size + 1);
+    return address & -block_size;
 }
 
 

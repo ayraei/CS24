@@ -1,4 +1,4 @@
-(b) ./mmperf output
+(b) mmperf output
 
 Testing multimap performance:  300000 pairs, 1000000 probes, random keys.
 Adding 300000 pairs to multimap.  Keys in range [0, 50), values in range [0, 1000).
