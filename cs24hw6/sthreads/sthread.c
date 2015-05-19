@@ -268,11 +268,34 @@ static void queue_remove(Queue *queuep, Thread *threadp) {
  * This function is global because it needs to be called from the assembly.
  */
 ThreadContext *__sthread_scheduler(ThreadContext *context) {
+    /* TODO: detect 1 or fewer ready threads. */
 
-    /* Replace these lines with your implementation */
-    /* TODO */ assert(0); /* TODO */
+    /* 1. Save the context argument into the current thread. */
+    current->context = context;
+    
+    /* 2. Queue up or deallocate the current thread. */
+    if (current->state == ThreadRunning) {
+        current->state = ThreadReady;
+        queue_add(current);
+    }
+    else if (current->state == ThreadFinished) {
+        __sthread_delete(current);
+    }
+    
+    /* 3. Select a new 'ready' thread to run. */
+    /* TODO: "if no 'ready' thread is available, see HW writeup */
+    current = queue_take(ready_queue);
+    
+    if (1) {
+        exit(0);
+    }
+    else if (0) {
+        exit(1);
+    }
+    
+    current->state = ThreadRunning;
 
-    /* Return the next thread to resume executing. */
+    /* 4. Return the next thread to resume executing. */
     return current->context;
 }
 
@@ -296,9 +319,14 @@ void sthread_start(void)
  * structure, and it adds the thread to the Ready queue.
  */
 Thread * sthread_create(void (*f)(void *arg), void *arg) {
-    /* Replace this function's body with your implementation */
-    /* TODO */ assert(0); /* TODO */
-    return NULL;
+    void *newStack = malloc(DEFAULT_STACKSIZE);
+    Thread *thread = (Thread *)malloc(sizeof(Thread));
+    thread->memory = newStack;
+    thread->context = __sthread_initialize_context(
+        newStack - DEFAULT_STACKSIZE, f, arg);
+    thread->state = ThreadReady;
+    queue_add(thread);
+    return thread;
 }
 
 
@@ -323,8 +351,9 @@ void __sthread_finish(void) {
  * context, as well as the memory for the Thread struct.
  */
 void __sthread_delete(Thread *threadp) {
-    /* Replace this function's body with your implementation */
-    /* TODO */ assert(0); /* TODO */
+    free(threadp->context);
+    free(threadp->memory);
+    free(threadp);
 }
 
 

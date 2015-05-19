@@ -29,7 +29,8 @@ scheduler_context:      .long   0
 __sthread_schedule:
 
         # Save the process state onto its stack
-        # TODO
+        pushfl  # Pushes eflags
+        pusha   # Pushes all general-purpose registers.
 
         # Call the high-level scheduler with the current context as an argument
         movl    %esp, %eax
@@ -41,7 +42,9 @@ __sthread_schedule:
         # Restore the context to resume the thread.
 __sthread_restore:
 
-        # TODO
+        movl %eax, %esp
+        popa
+        popfl
 
         ret
 
@@ -62,8 +65,19 @@ __sthread_restore:
         .globl __sthread_initialize_context
 __sthread_initialize_context:
 
-        # TODO
+    	pushl %ebp          /* Push old base pointer. */
+	    movl %esp,%ebp      /* Current stack is new base. */
+        
+        pushl 16(%ebp)
+        pushl 12(%ebp)
+        movl 8(%ebp), %esp
+        
+        jmp __sthread_schedule
 
+        # ???
+
+	    #movl %ebp,%esp      /* Pop local stack. */
+	    #popl %ebp           /* Pop old base of frame. */
         ret
 
 #
