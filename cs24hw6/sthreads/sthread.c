@@ -268,34 +268,35 @@ static void queue_remove(Queue *queuep, Thread *threadp) {
  * This function is global because it needs to be called from the assembly.
  */
 ThreadContext *__sthread_scheduler(ThreadContext *context) {
-    /* Detect one or fewer Ready threads. */
-    if (context == NULL) {
-        /* do something. */
-    }
+    /* If this is not the first call to scheduler (= no current thread),
+     * 1. Save the context argument into the current thread.
+     */
+    if (context != NULL) {
+        current->context = context;
 
-    /* 1. Save the context argument into the current thread. */
-    current->context = context;
-    
-    /* 2. Queue up or deallocate the current thread. */
-    if (current->state == ThreadRunning) {
-        current->state = ThreadReady;
-        queue_add(current);
-    }
-    else if (current->state == ThreadBlocked) {
-        queue_add(current);
-    }
-    else if (current->state == ThreadFinished) {
-        __sthread_delete(current);
+        /* 2. Queue up or deallocate the current thread. */
+        if (current->state == ThreadRunning) {
+            current->state = ThreadReady;
+            queue_add(current);
+        }
+        else if (current->state == ThreadBlocked) {
+            queue_add(current);
+        }
+        else if (current->state == ThreadFinished) {
+            __sthread_delete(current);
+        }
     }
     
     /* 3. Select a new 'ready' thread to run. */
-    /* TODO: "if no 'ready' thread is available, see HW writeup */
     current = queue_take(&ready_queue);
     
-    if (current == NULL) {
+    /* No Ready threads. */
+    if (current == NULL && queue_take(&blocked_queue) == NULL) {
+        fprintf(stderr, "All threads finished successfully.\n");
         exit(0);
     }
-    else if (0) {
+    else if (current == NULL) {
+        fprintf(stderr, "Program deadlocked!\n");
         exit(1);
     }
     
@@ -369,8 +370,9 @@ void __sthread_finish(void) {
  * context, as well as the memory for the Thread struct.
  */
 void __sthread_delete(Thread *threadp) {
-    free(threadp->context);
+    /* First free memory allocated for the Thread's stack. */
     free(threadp->memory);
+    /* Then free the Thread itself. */
     free(threadp);
 }
 

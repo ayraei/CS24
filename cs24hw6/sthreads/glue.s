@@ -78,7 +78,7 @@ __sthread_initialize_context:
         movl $__sthread_finish, 40(%eax)    # The return address
         movl %edx, 44(%eax)     # The function's argument
         
-        # Return value: stack pointer after context is set up
+        # Return value: eax = stack pointer
 
         ret
 
