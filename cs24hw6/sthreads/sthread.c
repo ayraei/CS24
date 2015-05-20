@@ -268,7 +268,10 @@ static void queue_remove(Queue *queuep, Thread *threadp) {
  * This function is global because it needs to be called from the assembly.
  */
 ThreadContext *__sthread_scheduler(ThreadContext *context) {
-    /* TODO: detect 1 or fewer ready threads. */
+    /* Detect one or fewer Ready threads. */
+    if (context == NULL) {
+        /* do something. */
+    }
 
     /* 1. Save the context argument into the current thread. */
     current->context = context;
@@ -278,15 +281,18 @@ ThreadContext *__sthread_scheduler(ThreadContext *context) {
         current->state = ThreadReady;
         queue_add(current);
     }
+    else if (current->state == ThreadBlocked) {
+        queue_add(current);
+    }
     else if (current->state == ThreadFinished) {
         __sthread_delete(current);
     }
     
     /* 3. Select a new 'ready' thread to run. */
     /* TODO: "if no 'ready' thread is available, see HW writeup */
-    current = queue_take(ready_queue);
+    current = queue_take(&ready_queue);
     
-    if (1) {
+    if (current == NULL) {
         exit(0);
     }
     else if (0) {
@@ -319,13 +325,25 @@ void sthread_start(void)
  * structure, and it adds the thread to the Ready queue.
  */
 Thread * sthread_create(void (*f)(void *arg), void *arg) {
+    /* Allocate space for the new Thread's stack. */
     void *newStack = malloc(DEFAULT_STACKSIZE);
+    
+    /* Allocate space for the Thread itself. */
     Thread *thread = (Thread *)malloc(sizeof(Thread));
+    
+    /* Set the new Thread's pointer to its stack. */
     thread->memory = newStack;
+    
+    /* Initialize the Thread's context. */
     thread->context = __sthread_initialize_context(
-        newStack - DEFAULT_STACKSIZE, f, arg);
+        (char *)newStack + DEFAULT_STACKSIZE, f, arg);
+    
+    /* Mark the Thread as Ready. */
     thread->state = ThreadReady;
+    
+    /* Add the Thread to the Ready queue. */
     queue_add(thread);
+    
     return thread;
 }
 

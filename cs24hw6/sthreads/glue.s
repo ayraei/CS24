@@ -42,9 +42,9 @@ __sthread_schedule:
         # Restore the context to resume the thread.
 __sthread_restore:
 
-        movl %eax, %esp
-        popa
-        popfl
+        movl %eax, %esp     # Restore the stack pointer.
+        popa                # Restore general-purpose registers
+        popfl               # Restore eflags
 
         ret
 
@@ -65,19 +65,21 @@ __sthread_restore:
         .globl __sthread_initialize_context
 __sthread_initialize_context:
 
-    	pushl %ebp          /* Push old base pointer. */
-	    movl %esp,%ebp      /* Current stack is new base. */
+        movl 4(%esp), %eax      # Store process's stack pointer to eax.
+        movl 8(%esp), %ecx      # Store the function to start in ecx.
+        movl 12(%esp), %edx     # Store the function's arg to edx.
         
-        pushl 16(%ebp)
-        pushl 12(%ebp)
-        movl 8(%ebp), %esp
+        # Now we need to set up the thread's context.
+        # thread_schedule pushes 8 registers and eflags; each is 4 bytes.
+        # So we set aside (8+1)*4 = 36 bytes on the stack for that.
+        # Then, we need to put the function to execute, its return address,
+        # and its argument on the stack.
+        movl %ecx, 36(%eax)     # The function to execute
+        movl $__sthread_finish, 40(%eax)    # The return address
+        movl %edx, 44(%eax)     # The function's argument
         
-        jmp __sthread_schedule
+        # Return value: stack pointer after context is set up
 
-        # ???
-
-	    #movl %ebp,%esp      /* Pop local stack. */
-	    #popl %ebp           /* Pop old base of frame. */
         ret
 
 #
