@@ -1,0 +1,11 @@
+The problem seen in the program output is that only producer 0's outputs are
+being consumed/making their way into the buffer.
+
+Cooperative thread execution is not fair in this program because of the way
+the threads add and take from the queue. After the queue is full, the thread
+running producer 0 yields, and the thread running producer 1 resumess executing.
+However, none of the elements in the queue have been consumed, so then
+producer 1 yields. The third thread then resumes executing, and consumes just
+one element from the queue. Then execution returns to producer 0. Thus,
+producer 1 never gets to contribute to the queue and producer 0 does all the
+computations.

@@ -45,7 +45,7 @@ static int fib(int i) {
  * Producer produces Fibonacci numbers mod FIB_MODULUS.
  */
 
-#define FIB_MODULUS     30
+#define FIB_MODULUS     20
 
 static void producer(void *arg) {
     BufferElem elem;
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
      * Start the thread scheduler.  By default, the timer is
      * not started.  Change the argument to 1 to start the timer.
      */
-    sthread_start(0);
+    sthread_start(1);
     return 0;
 }
 
