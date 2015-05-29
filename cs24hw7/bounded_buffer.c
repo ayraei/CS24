@@ -13,6 +13,7 @@
 
 #include "sthread.h"
 #include "bounded_buffer.h"
+#include "semaphore.h"
 
 /*
  * The bounded buffer data.
@@ -36,6 +37,12 @@ struct _bounded_buffer {
  * set to a default value.
  */
 static BufferElem empty = { -1, -1, -1 };
+
+/*
+ * Semaphores.
+ */
+static Semaphore *empty_space;
+static Semaphore *filled_space;
 
 /*
  * Allocate a new bounded buffer.
@@ -62,6 +69,9 @@ BoundedBuffer *new_bounded_buffer(int length) {
 
     bufp->length = length;
     bufp->buffer = buffer;
+    
+    empty_space = new_semaphore(length);
+    filled_space = new_semaphore(0);
 
     return bufp;
 }
@@ -72,12 +82,20 @@ BoundedBuffer *new_bounded_buffer(int length) {
  */
 void bounded_buffer_add(BoundedBuffer *bufp, const BufferElem *elem) {
     /* Wait until the buffer has space */
-    while (bufp->count == bufp->length)
-        sthread_yield();
-
+//    while (bufp->count == bufp->length)
+//        sthread
+    
+    __sthread_lock();
+    
     /* Now the buffer has space */
     bufp->buffer[(bufp->first + bufp->count) % bufp->length] = *elem;
     bufp->count++;
+    
+    __sthread_unlock();
+    
+    /* Increment filled_space and decrement empty_space. */
+    semaphore_wait(empty_space);
+    semaphore_signal(filled_space);
 }
 
 /*
@@ -86,13 +104,21 @@ void bounded_buffer_add(BoundedBuffer *bufp, const BufferElem *elem) {
  */
 void bounded_buffer_take(BoundedBuffer *bufp, BufferElem *elem) {
     /* Wait until the buffer has a value to retrieve */
-    while (bufp->count == 0)
-        sthread_yield();
+//    while (bufp->count == 0)
+
+    __sthread_lock();
 
     /* Copy the element from the buffer, and clear the record */
     *elem = bufp->buffer[bufp->first];
     bufp->buffer[bufp->first] = empty;
     bufp->count--;
     bufp->first = (bufp->first + 1) % bufp->length;
+    
+    __sthread_unlock();
+    
+    /* Decrement filled_space and increment empty_space. */
+    semaphore_wait(filled_space);
+    semaphore_signal(empty_space);
+    
 }
 

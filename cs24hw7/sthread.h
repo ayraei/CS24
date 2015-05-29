@@ -24,6 +24,16 @@ void sthread_block(void);
 Thread *sthread_current(void);
 void sthread_unblock(Thread *threadp);
 
+
+/*
+ * Queue
+ */
+typedef struct _queue Queue;
+void queue_append(Queue *queuep, Thread *threadp);
+Thread *queue_take(Queue *queuep);
+void queue_remove(Queue *queuep, Thread *threadp);
+
+
 /*
  * The function called when a thread returns (which they shouldn't
  * do).

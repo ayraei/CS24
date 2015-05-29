@@ -15,14 +15,22 @@
 #include "semaphore.h"
 
 /*
- * The semaphore data structure contains TODO
+ * The semaphore data structure contains the single value of the semaphore.
  */
 struct _semaphore {
-    /*
-     * TODO: define the semaphore data struct, and update the above
-     *       comment to properly reflect your changes.
-     */
+     int i;
 };
+
+
+typedef struct _queue {
+    Thread *head;
+    Thread *tail;
+} Queue;
+
+
+static Queue blocked_queue;
+
+
 
 /************************************************************************
  * Top-level semaphore implementation.
@@ -35,9 +43,8 @@ struct _semaphore {
 Semaphore *new_semaphore(int init) {
     Semaphore *semp;
 
-    /*
-     * TODO: allocate and initialize a semaphore data struct.
-     */
+     semp = (Semaphore *)malloc(sizeof(Semaphore));
+     semp->i = init;
 
     return semp;
 }
@@ -47,7 +54,20 @@ Semaphore *new_semaphore(int init) {
  * This operation must be atomic, and it blocks iff the semaphore is zero.
  */
 void semaphore_wait(Semaphore *semp) {
-    /* TODO */
+    /* Reading the semaphore's value must be atomic. */
+    __sthread_lock();
+    int i = semp->i;
+    __sthread_unlock();
+    
+    if (i == 0) {
+        sthread_block();
+        queue_append(&blocked_queue, sthread_current());
+    }
+    
+    /* Altering the semaphore's value must be atomic. */
+    __sthread_lock();
+    semp->i--;
+    __sthread_unlock();
 }
 
 /*
@@ -55,6 +75,16 @@ void semaphore_wait(Semaphore *semp) {
  * This operation must be atomic.
  */
 void semaphore_signal(Semaphore *semp) {
-    /* TODO */
+    /* Altering the semaphore's value must be atomic. */
+    __sthread_lock();
+    semp->i++;
+    __sthread_unlock();
+    
+    /* If there are blocked threads, unblock one. */
+    if (blocked_queue.head != NULL) {
+        Thread *t = queue_take(&blocked_queue);
+        sthread_unblock(t);
+        queue_remove(&blocked_queue, t);
+    }
 }
 

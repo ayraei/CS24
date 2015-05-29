@@ -94,6 +94,7 @@ typedef struct _queue {
     Thread *tail;
 } Queue;
 
+
 /*
  * The thread that is currently running.
  *
@@ -130,7 +131,7 @@ static int queue_empty(Queue *queuep) {
  * If the queue is empty, add the singleton element.
  * Otherwise, add the element as the tail.
  */
-static void queue_append(Queue *queuep, Thread *threadp) {
+void queue_append(Queue *queuep, Thread *threadp) {
     assert(queuep != NULL);
     assert(threadp != NULL);
 
@@ -171,7 +172,7 @@ static void queue_add(Thread *threadp) {
 /*
  * Get the first process from the queue.
  */
-static Thread *queue_take(Queue *queuep) {
+Thread *queue_take(Queue *queuep) {
     Thread *threadp;
 
     assert(queuep != NULL);
@@ -196,7 +197,7 @@ static Thread *queue_take(Queue *queuep) {
 /*
  * Remove a process from a queue.
  */
-static void queue_remove(Queue *queuep, Thread *threadp) {
+void queue_remove(Queue *queuep, Thread *threadp) {
     assert(queuep != NULL);
     assert(threadp != NULL);
 
@@ -333,6 +334,7 @@ Thread * sthread_create(void (*f)(void *arg), void *arg) {
  * This function is global because it needs to be referenced from assembly.
  */
 void __sthread_finish(void) {
+    /* This was already in the assignment. */
     __sthread_lock();
     printf("Thread 0x%08x has finished executing.\n", (unsigned int) current);
     current->state = ThreadFinished;
@@ -367,6 +369,10 @@ Thread * sthread_current() {
  * run.
  */
 void sthread_yield() {
+    /* This is an entry point to the scheduler. We need the lock to stop
+     * multiple contexts from being saved and restored.
+     */
+    __sthread_lock();
     __sthread_schedule();
 }
 
@@ -376,6 +382,8 @@ void sthread_yield() {
  * to Blocked, and call the scheduler.
  */
 void sthread_block() {
+    /* This is an entry point to the scheduler. */
+    __sthread_lock();
     current->state = ThreadBlocked;
     __sthread_schedule();
 }
