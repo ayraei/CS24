@@ -3,8 +3,7 @@ CFLAGS = -Wall -g -O0
 VMEM_OBJS = virtualmem.o vmalloc.o matrix.o test_matrix.o
 
 # So that the binary programs can be listed in fewer places
-#BINARIES = test_matrix test_matrix_fifo test_matrix_clru
-BINARIES = test_matrix test_matrix_fifo
+BINARIES = test_matrix test_matrix_fifo test_matrix_clru
 
 
 all: $(BINARIES)

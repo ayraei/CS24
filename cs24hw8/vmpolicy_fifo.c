@@ -1,5 +1,5 @@
 /*============================================================================
- * Implementation of the RANDOM page replacement policy.
+ * Implementation of the FIFO page replacement policy.
  *
  * We don't mind if policies use malloc() and free(), just because it keeps
  * things simpler.
@@ -124,7 +124,7 @@ static pagelist_t pagelist;
 
 /* Initialize the policy.  Return 0 for success, -1 for failure. */
 int policy_init() {
-    fprintf(stderr, "Using RANDOM eviction policy.\n\n");
+    fprintf(stderr, "Using FIFO eviction policy.\n\n");
     pagelist.head = NULL;
     pagelist.tail = NULL;
     return 0;
@@ -159,27 +159,17 @@ void policy_timer_tick() {
 }
 
 
-/* Choose a random page from the list of mapped pages, to evict.  Since we
- * use a linked list, use Reservoir Sampling to randomly select a page from
- * the list with a uniform probability.
+/* Choose the first mapped page from the list of mapped pages to evict. The
+ * resident pages are kept in a FIFO queue. When we need to unmap a page,
+ * simply choose the one at the front of the queue.
  */
 page_t choose_victim_page() {
     page_t victim;
-    int i;
-    pageinfo_t *pginfo;
 
     assert(pagelist.head != NULL);
 
+    /* Simply pick the front of the queue as the page to evict. */
     victim = pagelist.head->page;
-    i = 2;
-    pginfo = pagelist.head->next;
-    while (pginfo != NULL) {
-        if (rand() % i == 0)
-            victim = pginfo->page;
-
-        i++;
-        pginfo = pginfo->next;
-    }
 
 #if VERBOSE
     fprintf(stderr, "Choosing victim page %u to evict.\n", victim);
