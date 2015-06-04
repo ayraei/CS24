@@ -2,10 +2,12 @@ Answers to HW8 Questions
 ========================
 
 a)  How to detect when a page is accessed?
-
+Call mprotect on the address the page is mapped to, with protection PROT_NONE.
+Any access will generate a segfault, which we can detect.
 
 b)  How to detect when a page becomes dirty?
-
+Call mprotect on the address the page is mapped to, with protection PROT_READ.
+Any write will generate a segfault, which we can detect.
 
 f)  Page-load rate of "test_matrix -m 1024 1000" using RANDOM policy:
 

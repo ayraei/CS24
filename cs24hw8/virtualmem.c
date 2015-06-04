@@ -460,6 +460,27 @@ void map_page(page_t page, unsigned initial_perm) {
      * fail.)
      */
 
+    /* Use mmap() to add the page's address-range to the process' virtual
+     * memory.
+     */
+    mmap(page_to_addr(page),
+        PAGE_SIZE,
+        PROT_READ | PROT_WRITE,
+        MAP_FIXED | MAP_SHARED | MAP_ANONYMOUS,
+        -1,
+        0);
+    
+    /* Seek to the start of the corresponding slot in the swap file and
+     * read the slot's contents into the page mapped.
+     */
+    lseek(fd_swapfile, page * PAGE_SIZE, SEEK_SET);
+    read(fd_swapfile, page_to_addr(page), PAGE_SIZE);
+    /* pageperm_to_mmap(initial_perm), */
+    
+    /* 3. Update the page table entry */
+    set_page_resident(page);
+    set_page_permission(page, initial_perm);
+
     assert(is_page_resident(page));  /* Now it should be mapped! */
     num_loads++;
 
@@ -506,6 +527,15 @@ void unmap_page(page_t page) {
      *
      * Finally, the page's Page Table Entry should be cleared.
      */
+     
+     if (is_page_dirty(page)) {
+        set_page_permission(page, PAGEPERM_READ);
+        lseek(fd_swapfile, page * PAGE_SIZE, SEEK_SET);
+        write(fd_swapfile, page_to_addr(page), PAGE_SIZE);
+     }
+     
+     munmap(page_to_addr(page), PAGE_SIZE);
+     clear_page_entry(page);
 
     assert(!is_page_resident(page));
     num_resident--;
@@ -568,7 +598,7 @@ static void sigsegv_handler(int signum, siginfo_t *infop, void *data) {
      * page is simply unmapped (SEGV_MAPERR), or if the page is mapped but the
      * access itself was not permitted (SEGV_ACCERR).
      *
-     * If the address is unmapped (SEGV_ACCERR), you will need to map the
+     * If the address is unmapped (SEGV_MAPERR), you will need to map the
      * corresponding page into memory.  Make sure to respect the physical
      * memory constraints by evicting a page if there are already max_resident
      * pages loaded.  You can do something like this to evict a page:
@@ -596,6 +626,26 @@ static void sigsegv_handler(int signum, siginfo_t *infop, void *data) {
      * and then call abort() so that your code will fail visibly.  This will
      * greatly aid in debugging.
      */
+     
+    if (infop->si_code == SEGV_MAPERR) {
+        assert(num_resident <= max_resident);
+        if (num_resident == max_resident) {
+            page_t victim = choose_victim_page();
+            assert(is_page_resident(victim));
+            unmap_page(victim);
+            assert(!is_page_resident(victim));
+        }
+        map_page(page, PAGEPERM_RDWR);
+    }
+    
+    else if (infop->si_code == SEGV_ACCERR) {
+        set_page_permission(page, PAGEPERM_RDWR);
+    }
+    
+    else {
+        fprintf(stderr, "segfault with invalid code\n");
+        abort();
+    }
 }
 
 
