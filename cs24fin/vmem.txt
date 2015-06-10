@@ -1,0 +1,47 @@
+1) In what order should the VMM consider the classes?
+
+Not Accessed and Not Dirty
+    These pages were accessed never, or before either of the Accessed pages.
+    These pages were also written to never, or before the Not Accessed and
+    Dirty pages.
+    Thus they are read/written earlier in time than any other class, suggesting
+    they are the least-used pages.
+Not Accessed and Dirty
+    These pages were accessed before either of the Accessed pages. They were
+    written to at some point, but earlier in time than the Accessed pages
+    were accessed. So the latest read/write to any of these pages happened
+    before either class of Accessed pages.
+Accessed and Not Dirty
+    These pages are easier to evict than Accessed/Dirty pages, since we don't
+    have to write them back to memory, so prioritize evicting these first.
+Accessed and Dirty
+
+2a) How to choose page to evict based on history?
+
+Find the class of pages whose left-most 1-bit is farthest to the right, or the class of pages that were never accessed. These are the pages that have been
+accessed farthest in the past. Then of these pages, find the class of pages with
+the lowest sum of bits. These are the pages that were accessed furthest in the
+past and the least number of times. Of those pages, choose one randomly to
+evict.
+
+2b) Provide an implementation of update_history.
+
+void update_history(pte_t *pte, unsigned int *history) {
+    int accessed;
+    accessed = 1 && ((*pte) >> 5);
+    (*history) = (*history) >> 1;
+    if (accessed) {
+        (*history) += 0x8000;
+    }
+}
+
+2c) How is this policy similar/different from LRU?
+
+Similar: Both policies store some information about how long ago a page was
+accessed, to some degree, and evict pages based on which page is thought to have
+been accessed the least recently.
+
+Different: Because our history method does not update every time any page
+is accessed, it stores access information with less specificity than LRU does.
+It is possible for multiple pages to have the same history, whereas with LRU
+no pages are recorded to have been accessed at the same time.

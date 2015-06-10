@@ -1,0 +1,17 @@
+1) Stride for memory access to src? What about for dst?
+
+src is stride-SIZE. dist is stride-1.
+
+2) How far apart for addresses to map to different cache blocks but map to the
+same cache set?
+
+Each block is 64 bytes, so two addresses must be 64 bytes apart to map to
+different blocks but the same cache set. This is because the block offset
+in the address is rightmost, so the block offset bits do not need to be
+right-shifted when retrieved from the full address.
+
+3) The smallest SIZE value that will result in worst-case cache utilization?
+
+The worst-case cache utilization would be having a cache miss every iteration
+of the code. So we want each subsequent stride-SIZE access to map to a
+different cache block, so we should set SIZE to at least 64.

@@ -1,0 +1,35 @@
+a) What happens?
+
+H cannot acquire the lock on R yet, so it yields. The scheduler will then run
+M, which will take an eternity to run. Thus, H will only be allowed to run
+after M finishes execution. This seems to be called a "priority inversion"
+because the execution order went from lowest to highest priority (L, M, H),
+even though the highest priority processes should run first.
+
+b) How did priority inversion affect Mars Pathfinder?
+
+Suppose the timer reset was done in the high-priority process but lower-priority
+processes were allowed to clear the timer (with either process doing so by
+acquiring a lock on the timer). Then, if we had priority inversion, the
+timer would not be reset when the system hangs, preventing the system from
+resetting and resuming normal operations.
+
+c) How does priority donation fix priority inversion?
+
+Priority donation forces the scheduler to pick P2 since it has high priority,
+which will execute until it releases the lock on the resource desired. At that
+point, P1 recovers its priority and acquires the lock, thus completing its
+execution.
+
+d) Priority inversion with 4 processes and 2 resources. General properties?
+
+L has a lock on R1 and MH has a lock on R2. If ML requests a lock on R1, it
+gets blocked. If H requests a lock on R2, it gets blocked. Then suppose L
+releases the lock on R1, so ML acquires it and finishes. If MH finishes after
+that, then finally H can acquire a lock on R2 and finish.
+
+e) What issues from priority donation in context of deadlocks?
+
+It is possible that with priority donation, a process running into a deadlock
+will be promoted to higher priority and be scheduled to run, halting the
+system.

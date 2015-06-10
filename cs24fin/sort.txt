@@ -1,0 +1,49 @@
+1) How many cache-misses will this function generate?
+
+From the sorting algorithm time complexity, n*log(n) refers to the number of
+comparisons the sorting algorithm will need to perform. Then we will have about
+25mil*log(25mil) cache misses. When sorting elements in a list, common sorting
+algorithms don't tend to reexamine elements recently accessed in a short period
+of time. So operations like comparing one value against the rest of the entire
+list, for example, will generate almost 25 million cache misses.
+
+25mil*log(25mil) comes out to about 6.14 x 10^8 cache misses.
+
+2) How much does this approach benefit from hardware caches--main-memory speeds
+or L1 speeds?
+
+This approach will not benefit very much from hardware caches, so speeds
+will be closer to those of main-memory access than L1 speeds. This is because
+in doing comparisons, two keys being compared are unlikely to be spatially
+localized to each other, which will more likely than not generate a
+main memory access.
+
+3) Write an implementation of cmp_records.
+
+int cmp_records(const key_prefix *rec_ptrs, int i, int j) {
+    int cmp_val;
+    /* Compare the key prefixes first. */
+    cmp_val = memcmp(rec_ptrs[i].key, rec_ptrs[j].key, 4);
+    if (cmp_val != 0)
+        return cmp_val;
+    
+    /* The prefix didn't tell us anything definitive, time to check the key. */
+    return memcmp(*(rec_ptrs[i].ptr), *(rec_ptrs[j].ptr), KEY_SIZE);
+}
+
+4) Benefits of modified approach? How will it affect number of cache-misses?
+
+Because the keys are uniformly distributed, the first four bytes of the key
+only have a (1/26)^4 = 2 x 10^-6 chance of being the same. So we only need to
+load and examine two smaller chunks of data in order to determine how the keys
+compare to each other by using the prefixes, with very low chance of key
+collision. Since the prefixes are 1/8 the size of the full key, we can cache
+more key prefixes before running into cache misses, so the number of
+cache misses will decrease.
+
+5) Modified approach better or worse for similar keys?
+
+The modified approach would be worse for similar keys. The first four bytes
+are much more likely to be the same as each other if the keys are similar,
+necessitating two instead of one memory access--that of the prefix, and then
+that of the actual key.
